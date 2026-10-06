@@ -1,0 +1,1876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Torn Stats</title>
+<script src="config.js"></script>
+<script src="nav.js"></script>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cdefs%3E%3CradialGradient%20id%3D%22m%22%20cx%3D%2238%25%22%20cy%3D%2234%25%22%20r%3D%2272%25%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23f6f2ff%22/%3E%3Cstop%20offset%3D%220.55%22%20stop-color%3D%22%23c9c0ee%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%239a8fd0%22/%3E%3C/radialGradient%3E%3Cmask%20id%3D%22c%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20fill%3D%22white%22/%3E%3Ccircle%20cx%3D%2221.5%22%20cy%3D%2212%22%20r%3D%2210%22%20fill%3D%22black%22/%3E%3C/mask%3E%3C/defs%3E%3Ccircle%20cx%3D%2215%22%20cy%3D%2215%22%20r%3D%2211.5%22%20fill%3D%22url%28%23m%29%22%20mask%3D%22url%28%23c%29%22/%3E%3Cpath%20d%3D%22M3%2024%20L10%2024%20L12%2019%20L14.5%2028%20L17.5%2015%20L20%2024%20L29%2024%22%20fill%3D%22none%22%20stroke%3D%22%23c9c0ee%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E">
+<style>
+  :root{
+    --bg:#0e0f14; --bg2:#0b0c11; --surface:#171a24; --surface2:#1d2130;
+    --border:rgba(184,180,214,.12); --border2:rgba(184,180,214,.22);
+    --text:#e9e7f2; --muted:#9a96b0; --faint:#6b6880;
+    --accent:#b3a8e0; --accent2:#8ea3d8;
+    --good:#87c9a6; --warn:#e2c78c; --bad:#d99a9a;
+    --glow:0 0 24px rgba(179,168,224,.18); --radius:16px;
+  }
+  *{box-sizing:border-box} html,body{margin:0;padding:0}
+  body{
+    background:
+      radial-gradient(1100px 600px at 78% -12%, rgba(142,163,216,.10), transparent 60%),
+      radial-gradient(900px 500px at 10% 110%, rgba(179,168,224,.09), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font:15px/1.5 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
+    letter-spacing:.1px; min-height:100vh;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:26px 20px 60px}
+  header{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .moon{width:38px;height:38px;flex:0 0 auto;filter:drop-shadow(0 0 10px rgba(160,150,220,.35))}
+  h1{font-size:20px;margin:0;font-weight:600}
+  .sub{color:var(--muted);font-size:12.5px;margin-top:2px}
+  .spacer{flex:1}
+  .idcard{text-align:right;background:var(--surface);border:1px solid var(--border);
+    border-radius:12px;padding:8px 14px;min-width:150px}
+  .idcard .nm{font-weight:600}.idcard .mt{color:var(--muted);font-size:12px}
+  button.refresh{background:linear-gradient(180deg,#232838,#1a1e2b);color:var(--text);
+    border:1px solid var(--border2);border-radius:11px;padding:9px 15px;cursor:pointer;
+    font-size:13.5px;transition:.15s}
+  button.refresh:hover{border-color:var(--accent);box-shadow:var(--glow)}
+  button.refresh:disabled{opacity:.5;cursor:default;box-shadow:none}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 22px;border-bottom:1px solid var(--border)}
+  .tab{background:transparent;border:none;color:var(--muted);padding:10px 16px 12px;cursor:pointer;
+    font-size:14px;position:relative;border-radius:10px 10px 0 0;transition:.15s}
+  .tab:hover{color:var(--text)} .tab.active{color:var(--text)}
+  .tab.active::after{content:"";position:absolute;left:12px;right:12px;bottom:-1px;height:2px;
+    background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px}
+  .grid{display:grid;gap:16px}
+  .g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  /* masonry: cards keep natural height and pack with no stretched gaps */
+  .mrow{display:flex;gap:12px;align-items:flex-start;margin-top:14px}
+  .mcol{flex:1;min-width:0;display:flex;flex-direction:column;gap:12px}
+  .mcol>.card{margin:0}
+  .pstrip{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  .pico{width:34px;height:34px;border-radius:8px;border:1px solid var(--border);background:var(--surface);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted)}
+  .pico:hover{border-color:var(--accent)}
+  .pico.on{background:rgba(142,163,216,.16);color:var(--accent);border-color:var(--accent)}
+  .plab{font-size:12px;color:var(--muted);margin-bottom:5px;text-transform:capitalize}
+  .pl{font-size:12.5px;color:var(--text);padding:4px 0;border-bottom:1px solid var(--border)}
+  .pl:last-child{border-bottom:none}
+  @media(max-width:1080px){.g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:720px){.g2,.g3,.g4{grid-template-columns:1fr}}
+  /* meter row: label+value on one line, bar full width below — never clips */
+  .meter{padding:9px 0;border-bottom:1px solid var(--border)}
+  .meter:last-child{border-bottom:none}
+  .meter .mtop{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px}
+  .meter .mnm{color:var(--text);display:inline-flex;align-items:center;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .meter .mvl{color:var(--text);font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums;flex:0 0 auto}
+  .meter .mvl small{color:var(--muted);font-weight:500;margin-left:5px}
+  .meter.maxed .mvl{color:var(--warn)}
+  /* inline meter: name | bar | number on one line */
+  .meterin{display:flex;align-items:center;gap:11px;padding:6px 0;border-bottom:1px solid var(--border)}
+  .meterin:last-child{border-bottom:none}
+  .meterin .mi-nm{flex:0 0 132px;min-width:0;overflow:hidden;text-overflow:ellipsis;
+    white-space:nowrap;color:var(--text);font-size:13px}
+  .meterin .bar{flex:1;margin:0}
+  .meterin .mi-vl{flex:0 0 auto;min-width:90px;text-align:right;font-weight:600;
+    font-variant-numeric:tabular-nums;white-space:nowrap;font-size:12.5px;display:inline-flex;
+    align-items:center;justify-content:flex-end;gap:5px}
+  .meterin .mi-vl small{color:var(--muted);font-weight:500}
+  .maxtag{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.5px;
+    color:#161616;background:linear-gradient(180deg,#f0d98a,#d9b775);border-radius:5px;
+    padding:1px 5px;margin-left:7px;vertical-align:1px}
+  .meritgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:11px}
+  .meritcard{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 13px}
+  .meritcard.maxed{border-color:rgba(217,183,117,.5)}
+  .mc-top{display:flex;align-items:center;gap:6px}
+  .mc-top svg{color:var(--muted);flex:0 0 auto}
+  .mc-name{font-size:13px;font-weight:600;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mc-lvl{font-size:12px;color:var(--text);font-variant-numeric:tabular-nums;flex:0 0 auto}
+  .mc-fx{display:flex;justify-content:space-between;font-size:12px;margin-top:3px}
+  .mc-fx span{color:var(--muted)}
+  .simrow{display:grid;grid-template-columns:1.3fr auto 1.4fr;gap:10px;align-items:center;
+    padding:9px 4px;border-bottom:1px solid var(--border)}
+  .simrow:last-child{border-bottom:none}
+  .sr-name{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text);min-width:0}
+  .sr-name svg{color:var(--muted);flex:0 0 auto}
+  .sr-ctl{display:flex;align-items:center;gap:6px}
+  .sr-ctl button{width:26px;height:26px;padding:0;border:1px solid var(--border2);background:var(--surface);
+    color:var(--text);border-radius:7px;cursor:pointer;font-size:15px;line-height:1}
+  .sr-ctl button:hover{border-color:var(--accent)}
+  .sr-val{min-width:36px;text-align:center;font-size:13px;font-variant-numeric:tabular-nums}
+  .sr-eff{font-size:12px;text-align:right}
+  .card{background:linear-gradient(180deg,var(--surface),var(--bg2));border:1px solid var(--border);
+    border-radius:var(--radius);padding:13px 15px 11px;position:relative;overflow:hidden}
+  .card h3{margin:0 0 10px;padding-bottom:8px;font-size:14px;color:var(--accent);font-weight:700;
+    text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;flex-wrap:wrap;gap:8px;
+    border-bottom:1px solid var(--border2)}
+  .card h3 svg{color:var(--accent)}
+  .big{font-size:28px;font-weight:700;letter-spacing:.3px}.big.accent{color:var(--accent)}
+  .cardnote{color:var(--faint);font-size:12px;margin-top:3px}
+  .row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)}
+  .row:last-child{border-bottom:none}
+  .row .lbl{flex:0 0 168px;color:var(--text)}
+  .row .val{flex:0 0 auto;font-variant-numeric:tabular-nums;font-weight:600}
+  .bar{flex:1;height:9px;border-radius:6px;background:rgba(255,255,255,.06);overflow:hidden;position:relative}
+  .bar>i{display:block;height:100%;border-radius:6px;
+    background:linear-gradient(90deg,var(--accent2),var(--accent));box-shadow:0 0 10px rgba(179,168,224,.4)}
+  .bar.good>i{background:linear-gradient(90deg,#6fae8c,var(--good))}
+  .bar.maxed>i{background:linear-gradient(90deg,#d9b775,var(--warn))}
+  .pill{display:inline-block;font-size:11px;padding:2px 9px;border-radius:999px;
+    border:1px solid var(--border2);color:var(--muted)}
+  .pill.good{color:var(--good);border-color:rgba(135,201,166,.4)}
+  .pill.warn{color:var(--warn);border-color:rgba(226,199,140,.4)}
+  .pill.accent{color:var(--accent);border-color:rgba(179,168,224,.45)}
+  .mini{display:flex;gap:18px;flex-wrap:wrap;margin:4px 0 12px}
+  .mini div{font-size:12.5px;color:var(--muted)}
+  .mini b{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}
+  table{width:100%;border-collapse:collapse}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);font-size:13px}
+  th{color:var(--muted);font-weight:600;text-transform:uppercase;font-size:11px;letter-spacing:.5px}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .banner{background:rgba(217,154,154,.09);border:1px solid rgba(217,154,154,.35);
+    color:#f0c9c9;border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:13.5px}
+  .infobox{background:rgba(142,163,216,.08);border:1px solid rgba(142,163,216,.3);
+    border-radius:12px;padding:12px 14px;font-size:13px;color:#cdd6ee;margin-top:16px}
+  .hidden{display:none}
+  .foot{color:var(--faint);font-size:12px;margin-top:26px;text-align:center}
+  /* awards controls */
+  .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:16px 0 4px}
+  .seg{display:inline-flex;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  .seg button{background:transparent;border:none;color:var(--muted);padding:8px 14px;cursor:pointer;font-size:13px;transition:.12s}
+  .seg button:hover{color:var(--text)}
+  .seg button.on{background:linear-gradient(180deg,#262c3e,#1c2130);color:var(--text)}
+  .search{flex:1;min-width:160px;background:var(--surface);border:1px solid var(--border);border-radius:10px;
+    color:var(--text);padding:9px 13px;font-size:13.5px;outline:none}
+  .search:focus{border-color:var(--accent)}
+  .count{color:var(--muted);font-size:12.5px;margin-left:auto}
+  .awrow{display:flex;align-items:flex-start;gap:12px;padding:11px 4px;border-bottom:1px solid var(--border)}
+  .awrow:last-child{border-bottom:none}
+  .awmark{flex:0 0 22px;height:22px;border-radius:6px;display:grid;place-items:center;font-size:13px;margin-top:1px}
+  .awmark.done{background:rgba(135,201,166,.16);color:var(--good);border:1px solid rgba(135,201,166,.4)}
+  .awmark.lock{background:rgba(184,180,214,.06);color:var(--faint);border:1px solid var(--border)}
+  .awbody{flex:1;min-width:0}
+  .awname{font-weight:600;font-size:14px}
+  .awdesc{color:var(--muted);font-size:12.5px;margin-top:1px}
+  .awtag{display:inline-block;font-size:10.5px;padding:1px 7px;border-radius:999px;border:1px solid var(--border2);
+    color:var(--muted);margin-left:8px;vertical-align:middle;text-transform:uppercase;letter-spacing:.4px}
+  .awprog{margin-top:6px;display:flex;align-items:center;gap:10px}
+  .awprog .bar{max-width:280px}
+  .awprog .pv{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .awlist{max-height:640px;overflow:auto;margin-top:6px}
+  .edu-cat{display:flex;justify-content:space-between;align-items:center;margin:14px 0 4px;
+    padding-bottom:5px;border-bottom:1px solid var(--border2)}
+  .edu-cat span:first-child{color:var(--accent);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.5px}
+  .edu-cc{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
+  .perklist{max-height:280px;overflow:auto;margin-top:8px}
+  .perkline{font-size:12.5px;color:var(--text);padding:3px 0;border-bottom:1px solid var(--border)}
+  .perkline:last-child{border-bottom:none}
+  .edu-code{display:inline-block;font-size:10.5px;color:var(--accent2);background:rgba(142,163,216,.1);
+    border:1px solid var(--border);border-radius:5px;padding:0 5px;margin-right:6px;font-variant-numeric:tabular-nums}
+  .awmark.prog{background:rgba(226,199,140,.14);color:var(--warn);border:1px solid rgba(226,199,140,.4)}
+  .awmark.avail{background:rgba(142,163,216,.14);color:var(--accent);border:1px solid rgba(142,163,216,.4)}
+  .tab svg{vertical-align:-3px;margin-right:5px}
+  /* education states: green done, amber current, lavender available, grey locked */
+  .awrow.edu-done{background:rgba(135,201,166,.06)}
+  .awrow.edu-current{background:rgba(226,199,140,.06)}
+  .awrow.edu-locked{opacity:.55}
+  .awrow.sel{outline:1px solid var(--accent);border-radius:8px}
+  .awrow{cursor:default}
+  .edugrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:9px}
+  .chiprow{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}
+  .statchip{font-size:10.5px;font-weight:700;letter-spacing:.3px;padding:1px 7px;border-radius:6px}
+  .statchip.int{background:rgba(142,163,216,.16);color:#9fb1e0}
+  .statchip.end{background:rgba(226,199,140,.16);color:#e2c78c}
+  .statchip.man{background:rgba(135,201,166,.16);color:#7ec9a6}
+  .card h3 .seg{margin-left:auto}
+  .edutile{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:11px;cursor:pointer}
+  .edutile:hover{border-color:var(--accent)}
+  .edutile.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+  .edutile.complete{border-color:rgba(217,183,117,.5)}
+  .et-name{font-size:12.5px;font-weight:600;color:var(--text);margin-bottom:7px}
+  .et-cc{font-size:12px;color:var(--muted);margin-top:5px;font-variant-numeric:tabular-nums}
+  .dt-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;
+    padding-bottom:10px;margin-bottom:10px;border-bottom:1px solid var(--border)}
+  .dt-name{font-size:16px;font-weight:600;color:var(--text);margin-top:3px}
+  .dt-sec{margin-bottom:12px}
+  .dt-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+  .dt-val{font-size:13.5px;color:var(--text);line-height:1.5}
+  /* two-pane awards (Option C) */
+  .awtwo{display:grid;grid-template-columns:minmax(0,0.85fr) minmax(0,2fr);gap:12px;align-items:start}
+  @media(max-width:720px){.awtwo{grid-template-columns:1fr}}
+  /* awards overview band */
+  .awband{display:flex;gap:28px;align-items:center;flex-wrap:wrap;
+    background:linear-gradient(180deg,var(--surface),var(--bg2));border:1px solid var(--border);
+    border-radius:14px;padding:15px 18px;margin-bottom:12px}
+  .ab-num .ab-big{font-size:29px;font-weight:800;color:var(--accent);line-height:1}
+  .ab-num .ab-mid{font-size:21px;font-weight:700;color:var(--text);line-height:1}
+  .ab-sub{font-size:16px;color:var(--muted);font-weight:600}
+  .ab-sub2{font-size:12px;color:var(--muted);font-weight:400}
+  .ab-lbl{font-size:12px;color:var(--muted);margin-top:4px}
+  .ab-div{border-left:1px solid var(--border);padding-left:28px}
+  .ab-faint{color:var(--faint)}
+  .ab-gold{color:var(--warn)}
+  .awshare{margin-left:auto;display:inline-flex;align-items:center;gap:7px;padding:9px 15px;font-size:13px}
+  .awshare svg{color:currentColor}
+  .awchase{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:6px}
+  .chcard{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:11px 14px}
+  .ch-h{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+  .ch-h svg{color:var(--accent)}
+  .ch-body{font-size:12.5px;line-height:2;color:var(--text)}
+  /* two-pane header ring */
+  .awpane-head{display:flex;align-items:center;gap:13px;border-bottom:1px solid var(--border2);
+    padding-bottom:11px;margin-bottom:11px;flex-wrap:wrap}
+  .aph-rar{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:320px}
+  .rbadge{font-size:10.5px;color:var(--muted);background:var(--surface);border:1px solid var(--border);
+    border-radius:6px;padding:2px 8px;white-space:nowrap}
+  .rbadge b{color:var(--text);font-variant-numeric:tabular-nums}
+  .rbadge.full{border-color:var(--border-warning,rgba(226,199,140,.5))}
+  .rbadge.full b{color:var(--warn)}
+  .aph-name{font-size:15px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.6px}
+  .aph-sub{font-size:12.5px;color:var(--muted);margin-top:3px}
+  .awcat{display:flex;align-items:center;gap:9px}
+  .awcat .awcat-n{flex:1}
+  /* share card overlay */
+  .shareov{position:fixed;inset:0;background:rgba(8,9,14,.72);display:flex;align-items:center;
+    justify-content:center;z-index:50;backdrop-filter:blur(3px)}
+  .sharecard{background:linear-gradient(180deg,var(--surface),var(--bg2));border:1px solid var(--border2);
+    border-radius:16px;padding:22px 26px;min-width:300px;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .sc-head{font-size:13px;color:var(--accent);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px}
+  .sc-big{font-size:38px;font-weight:800;color:var(--text);line-height:1}
+  .sc-big span{font-size:20px;color:var(--muted);font-weight:600}
+  .sc-sub{font-size:12.5px;color:var(--muted);margin:3px 0 14px}
+  .sc-row{display:flex;justify-content:space-between;gap:12px;font-size:13px;padding:5px 0;border-bottom:1px solid var(--border)}
+  .sc-row b{font-variant-numeric:tabular-nums}
+  .sc-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:12px 0 4px}
+  .sc-foot{font-size:11px;color:var(--faint);text-align:center;margin-top:14px}
+  .awcats{padding:6px}
+  .awcat{display:flex;justify-content:space-between;align-items:center;gap:8px;
+    padding:9px 10px;border-radius:8px;cursor:pointer}
+  .awcat:hover{background:var(--surface)}
+  .awcat.on{background:rgba(142,163,216,.14)}
+  .awcat-n{font-size:13px;color:var(--text)}
+  .awcat.on .awcat-n{color:var(--accent)}
+  .awcat-c{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;flex:0 0 auto}
+  .awpane .awlist{max-height:600px;overflow:auto}
+  /* overview snapshot */
+  .snap{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px solid var(--border)}
+  .snap:last-child{border-bottom:none}
+  .snap .k{color:var(--muted)}
+  .snap .v{font-weight:600;font-variant-numeric:tabular-nums}
+  .snap .v small{color:var(--accent2);font-weight:500;margin-left:6px}
+  .snap .v em{color:var(--faint);font-style:normal;font-size:11.5px;margin-left:6px}
+  .goaleditor{margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+  .goaltitle{color:var(--muted);font-size:12px;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+  .goalgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .goalitem{display:flex;flex-direction:column;gap:3px}
+  .goalitem span{color:var(--faint);font-size:11px}
+  .goalitem input{background:var(--surface);border:1px solid var(--border);border-radius:8px;
+    color:var(--text);padding:6px 9px;font-size:12.5px;outline:none;font-variant-numeric:tabular-nums;width:100%}
+  .goalitem input:focus{border-color:var(--accent)}
+  /* growth */
+  .daterow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:14px 0 6px}
+  .daterow label{color:var(--muted);font-size:12.5px}
+  .daterow input[type=date]{background:var(--surface);border:1px solid var(--border);border-radius:9px;
+    color:var(--text);padding:7px 10px;font-size:13px;outline:none}
+  .daterow input[type=date]:focus{border-color:var(--accent)}
+  .chart{width:100%;height:260px;display:block}
+  .chart .gl{stroke:rgba(184,180,214,.10)}
+  .chart .ln{fill:none;stroke:url(#gg);stroke-width:2.5}
+  .chart .dt{fill:var(--accent)}
+  .chart text{fill:var(--faint);font-size:11px}
+  .guide{background:rgba(179,168,224,.06);border:1px solid rgba(179,168,224,.28);
+    border-radius:12px;padding:14px 16px;margin-top:16px}
+  .guide h4{margin:0 0 8px;font-size:13px;color:var(--accent);text-transform:uppercase;letter-spacing:.6px}
+  .guide ul{margin:6px 0;padding-left:18px}
+  .guide li{margin:4px 0;font-size:13px;color:var(--text)}
+  .guide .warn{color:var(--warn)}
+  .guide .good{color:var(--good)}
+  a{color:var(--accent2);text-decoration:none}a:hover{text-decoration:underline}
+</style>
+</head>
+<body data-section="stats">
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <svg class="moon" width="38" height="38" viewBox="0 0 32 32" aria-hidden="true">
+        <defs>
+          <radialGradient id="bm" cx="38%" cy="34%" r="72%">
+            <stop offset="0" stop-color="#f6f2ff"/><stop offset="0.55" stop-color="#c9c0ee"/>
+            <stop offset="1" stop-color="#9a8fd0"/>
+          </radialGradient>
+          <mask id="bc"><rect width="32" height="32" fill="white"/>
+            <circle cx="21.5" cy="12" r="10" fill="black"/></mask>
+        </defs>
+        <circle cx="15" cy="15" r="11.5" fill="url(#bm)" mask="url(#bc)"/>
+        <path d="M3 24 L10 24 L12 19 L14.5 28 L17.5 15 L20 24 L29 24" fill="none"
+          stroke="#c9c0ee" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div><h1>Torn Stats</h1>
+      <div class="sub" id="brandsub">Personal Data Analysis</div></div>
+    </div>
+    <div class="spacer"></div>
+    <div class="idcard"><div class="nm" id="pname">—</div><div class="mt" id="pmeta">loading…</div></div>
+    <button class="refresh" id="refreshBtn" onclick="load(true)">Refresh</button>
+  </header>
+
+  <div id="errors"></div>
+
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-tab="overview" data-icon="overview">Overview</button>
+    <button class="tab" data-tab="growth" data-icon="growth">Growth</button>
+    <button class="tab" data-tab="crimes" data-icon="crime">Crimes</button>
+    <button class="tab" data-tab="awards" data-icon="award">Awards</button>
+    <button class="tab" data-tab="education" data-icon="education">Education</button>
+  </div>
+
+  <div id="tab-overview" class="tabpane"></div>
+  <div id="tab-growth" class="tabpane hidden"></div>
+  <div id="tab-crimes" class="tabpane hidden"></div>
+  <div id="tab-awards" class="tabpane hidden"></div>
+  <div id="tab-education" class="tabpane hidden"></div>
+
+  <div class="foot" id="foot"></div>
+</div>
+
+<script>
+// ---- subcrime names: the ONLY hand-mapped crime data. Names come from the ---
+// Torn wiki, applied to each crime's API subcrime IDs sorted ascending, and
+// verified against real attempt-count data. Crimes not listed here show
+// crime-level stats only (no subcrime table) rather than guess names.
+// Keyed by crime id -> ordered list of subcrime names (ascending subcrime id).
+// Criminal Record card: sum crime "attempts" (default) or "success" per category.
+const CRIM_RECORD_MODE = "attempts";   // "attempts" | "success"
+const SUBCRIME_NAMES = {
+  1: ["Search the Trash","Search the Subway","Search the Junkyard",
+      "Search the Beach","Search the Cemetery","Search the Fountain"],   // verified
+  2: ["Copy DVDs","Sell Counterfeit DVDs","Set Up Online Store"],        // +1 unnamed handled
+  3: ["East Side","West Side","North Side","Residential District",
+      "Red-Light District","Financial District","City Centre"],          // verified order
+  4: ["Sally's Sweet Shop","Bits 'n' Bobs","TC Clothing","Super Store",
+      "Pharmacy","Cyber Force","Jewelry Store","Big Al's Gun Shop"],      // wiki order
+};
+
+// ---- helpers --------------------------------------------------------------
+const $ = s => document.querySelector(s);
+const el = (t,c,h) => { const e=document.createElement(t); if(c)e.className=c; if(h!=null)e.innerHTML=h; return e; };
+const fmt = n => (n==null||isNaN(n)) ? "—" : Number(n).toLocaleString();
+const pct1 = n => (Math.round(n*10)/10);
+const pretty = k => String(k).replace(/_/g," ").replace(/\b\w/g, m=>m.toUpperCase());
+const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+const CRIME_SKILLS = ["search_for_cash","bootlegging","graffiti","shoplifting",
+  "pickpocketing","card_skimming","burglary","hustling","disposal","cracking",
+  "forgery","scamming","searchforcash","cardskimming","arson"];
+const CRIME_PSTAT = /crim|theft|larceny|drug|contraband|hustl|forgery|scam|pickpocket|shoplift|bootleg|graffiti|arrest|jail|busted|blackmail|kidnap|smuggl/i;
+
+// ---- inline icons (currentColor, theme-aware) -----------------------------
+const ICONS={
+  strength:'<path d="M4 8l4-4 2 2-4 4zM16 20l4-4-2-2-4 4z" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M8 12l4 4M12 8l4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+  defense:'<path d="M12 2l7 3v6c0 5-3 8-7 9-4-1-7-4-7-9V5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
+  speed:'<path d="M13 2L4 14h6l-1 8 9-12h-6z" fill="currentColor"/>',
+  dexterity:'<circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" stroke-width="2"/>',
+  battle:'<path d="M5 4l7 7M14.5 9.5L20 4M13 11l6-6M9.5 14.5L4 20" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>',
+  effective:'<path d="M13 2L4 14h6l-1 8 9-12h-6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
+  work:'<rect x="3" y="7" width="18" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2" fill="none" stroke="currentColor" stroke-width="2"/>',
+  bars:'<rect x="4" y="10" width="15" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><rect x="6" y="12" width="7" height="4" fill="currentColor"/><path d="M20 12v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+  wallet:'<rect x="3" y="6" width="18" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16.5" cy="12.5" r="1.4" fill="currentColor"/>',
+  skills:'<path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.2l5.9-.9z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
+  crime:'<path d="M4 8c0-2 3-3 8-3s8 1 8 3c0 3-2 6-4 6-1 0-1.5-1-4-1s-3 1-4 1c-2 0-4-3-4-6z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="9" r="1.3" fill="currentColor"/><circle cx="15" cy="9" r="1.3" fill="currentColor"/>',
+  energy:'<path d="M13 2L4 14h6l-1 8 9-12h-6z" fill="currentColor"/>',
+  nerve:'<path d="M12 3c3 3 5 5 5 9a5 5 0 01-10 0c0-2 1-3 2-4 0 1 1 2 2 2 0-3-1-5 1-7z" fill="none" stroke="currentColor" stroke-width="2"/>',
+  happy:'<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 14c1 1.5 2.5 2 4 2s3-.5 4-2" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="9" cy="10" r="1" fill="currentColor"/><circle cx="15" cy="10" r="1" fill="currentColor"/>',
+  life:'<path d="M12 20s-7-4.5-7-9.5A3.5 3.5 0 0112 8a3.5 3.5 0 017 2.5c0 5-7 9.5-7 9.5z" fill="none" stroke="currentColor" stroke-width="2"/>',
+  chain:'<path d="M9 12a3 3 0 013-3h1a3 3 0 010 6M15 12a3 3 0 01-3 3h-1a3 3 0 010-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+  history:'<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>',
+  growth:'<path d="M4 18l5-5 3 3 7-8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 8h5v5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+  award:'<circle cx="12" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 13l-2 8 5-3 5 3-2-8" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
+  merit:'<path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.2l5.9-.9z" fill="currentColor"/>',
+  overview:'<rect x="3" y="3" width="8" height="8" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13" y="3" width="8" height="8" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/><rect x="3" y="13" width="8" height="8" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13" y="13" width="8" height="8" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/>',
+  education:'<path d="M12 4L2 9l10 5 10-5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M6 11v5c0 1 3 3 6 3s6-2 6-3v-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
+  faction:'<path d="M5 21V5l7-2 7 2v16" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 21v-5h6v5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="9" r="1.5" fill="currentColor"/>',
+  job:'<rect x="3" y="7" width="18" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2" fill="none" stroke="currentColor" stroke-width="2"/>',
+  property:'<path d="M4 11l8-6 8 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M6 10v9h12v-9" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
+  book:'<path d="M5 4h11a2 2 0 012 2v14H7a2 2 0 01-2-2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 4v14" fill="none" stroke="currentColor" stroke-width="2"/>',
+  enhancer:'<path d="M9 3h6M10 3v6l-4 8a2 2 0 002 3h8a2 2 0 002-3l-4-8V3" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
+};
+function icon(name,size){
+  const s=size||16;
+  return '<svg viewBox="0 0 24 24" width="'+s+'" height="'+s+'" style="vertical-align:-2px;margin-right:7px;color:var(--accent)">'+(ICONS[name]||'')+'</svg>';
+}
+function cardH(title, iconName){
+  const h=el("h3"); h.innerHTML=(iconName?icon(iconName):"")+title; return h;
+}
+function rowLbl(name, text){
+  return '<span style="display:inline-flex;align-items:center"><svg viewBox="0 0 24 24" width="14" height="14" style="margin-right:7px;color:var(--muted)">'+(ICONS[name]||'')+'</svg>'+text+'</span>';
+}
+
+// ---- battle-stat goals (per stat, saved in this browser) ------------------
+function getGoal(stat){
+  const v=parseInt(localStorage.getItem("torn_goal_"+stat)||"",10);
+  return (v && v>0) ? v : GOAL_PER_STAT;
+}
+function setGoal(stat, v){
+  if(v && v>0) localStorage.setItem("torn_goal_"+stat, String(Math.round(v)));
+  else localStorage.removeItem("torn_goal_"+stat);
+}
+
+// ---- meter row: label + value on one line, bar underneath (won't clip) ----
+function meterRow(labelHtml, valueHtml, pct, cls){
+  // condensed one-line layout everywhere (name | bar | number)
+  return meterRowInline(labelHtml, valueHtml, pct, cls);
+}
+// inline variant: name on the left, bar in the middle, number on the right — one line
+function meterRowInline(labelHtml, valueHtml, pct, cls){
+  const m=el("div","meterin");
+  m.innerHTML='<span class="mi-nm">'+labelHtml+'</span>';
+  const bar=el("div","bar"+(cls?(" "+cls):"")); const i=el("i");
+  i.style.width=clamp(pct||0,0,100)+"%"; bar.appendChild(i); m.appendChild(bar);
+  const v=el("span","mi-vl"); v.innerHTML=valueHtml; m.appendChild(v);
+  return m;
+}
+
+// ---- editable skill caps for the % bars (crime skills are always /100) -----
+// null = unknown scale (shows the level with no bar). Adjust freely.
+const SKILL_MAX = { hunting:50, reviving:100, medical:100, racing:null };
+function skillMax(name){
+  const k=String(name).toLowerCase();
+  if(CRIME_SKILLS.includes(k)) return 100;
+  if(k in SKILL_MAX) return SKILL_MAX[k];
+  return null;
+}
+
+let DATA = null;
+
+
+// ---- editable: battle-stat goal per stat (matches the classic 10M target) --
+const GOAL_PER_STAT = 10000000;
+
+// ---- merit guidance (community consensus, playstyle-dependent) -------------
+const MERIT_GUIDE = {
+  pump: [
+    "Brawn / Protection / Sharpness / Evasion — +3% passive per level to a battle stat. For stat-builders these are the highest-value pumps; max the ones matching your build.",
+    "Your weapon's Mastery (Machine Gun, Rifle, SMG, Pistol, etc.) + Temporary Mastery — big damage/accuracy for fighters. Only pump the type you actually use.",
+    "Education Length — each level −2% course time (−20% at max). Cheap, permanent time saver while you still have courses left.",
+    "Nerve / Crime merits — worthwhile if you grind crimes or chase crime awards.",
+  ],
+  avoid: [
+    "Weapon masteries for weapons you don't use — wasted merits.",
+    "Addiction merit if you rarely use drugs — niche benefit.",
+    "Spreading thin: leveling many merits to 1–2 instead of maxing the few that fit your build.",
+    "Education Length once your courses are basically done — no time left to save.",
+  ],
+};
+
+// ---- education guidance ---------------------------------------------------
+const EDU_GUIDE = {
+  next: [
+    "Introduction to Biochemistry → Intravenous Therapy — unlocks blood bags (essential for healing/self-hosp). Do these first.",
+    "Sports Science tree — +% gym gains. The earlier you finish these, the more every future train compounds.",
+    "Driver's License — prerequisite for arson crimes if you go that route.",
+    "Finish whole trees to unlock the Bachelor perk (each bachelor grants a permanent bonus or unlock).",
+  ],
+  avoid: [
+    "Don't sink early time into General Studies bachelor purely for stats — low return for the long duration; take it later.",
+    "Long bachelors with perks you won't use — deprioritize until the useful trees are done.",
+    "Starting a course near high drug addiction (6–7%) — an overdose can kick you out of the course.",
+  ],
+};
+
+$("#tabs").addEventListener("click", e=>{
+  const b=e.target.closest(".tab"); if(!b) return;
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t===b));
+  document.querySelectorAll(".tabpane").forEach(p=>p.classList.add("hidden"));
+  $("#tab-"+b.dataset.tab).classList.remove("hidden");
+});
+
+function statRow(label,val,pct,cls){
+  const r=el("div","row"); r.appendChild(el("div","lbl",label));
+  const bar=el("div","bar"+(cls?(" "+cls):"")); const i=el("i");
+  i.style.width=clamp(pct||0,0,100)+"%"; bar.appendChild(i); r.appendChild(bar);
+  r.appendChild(el("div","val",val)); return r;
+}
+
+// ---- crime unique totals across the account -------------------------------
+function crimeName(id){
+  const d=(DATA.crime_defs||{})[String(id)];
+  return (d&&d.name) || ("Crime #"+id);
+}
+function crimeSkillLevels(){
+  // Reliable crime skill levels straight from the v2 crimes data.
+  const crimes=DATA.crimes||{}; const out=[];
+  Object.keys(crimes).map(Number).sort((a,b)=>a-b).forEach(id=>{
+    const c=crimes[id]||{}; if(c.skill==null) return;
+    out.push({id, name:crimeName(id), skill:+c.skill,
+              attempts:(c.attempts&&c.attempts.total)||0,
+              success:(c.attempts&&c.attempts.success)||0});
+  });
+  return out;
+}
+
+// ---- Overview (full profile snapshot) -------------------------------------
+function growthRate(metric){
+  // returns {perDay, span} from history for a metric, or null
+  const h=(DATA.history||[]).filter(x=>x[metric]!=null);
+  if(h.length<2) return null;
+  const a=h[0], b=h[h.length-1];
+  const days=Math.max(1,(b.ts-a.ts)/86400);
+  const per=(b[metric]-a[metric])/days;
+  return {perDay:per, span:days};
+}
+function daysToGoal(current, goal, metric){
+  const r=growthRate(metric); if(!r||r.perDay<=0||current>=goal) return null;
+  return Math.ceil((goal-current)/r.perDay);
+}
+function snapRow(k, vHtml){
+  const r=el("div","snap");
+  r.appendChild(el("div","k",k)); const v=el("div","v"); v.innerHTML=vHtml; r.appendChild(v);
+  return r;
+}
+function statMod(bs, st){
+  // returns {mod, info[]} for a battle stat, tolerant of key spellings
+  let mod=bs[st+"_modifier"]; if(mod==null) mod=bs[st+"modifier"];
+  let info=bs[st+"_info"]; if(info==null) info=bs[st+"info"];
+  return {mod: (mod==null?null:+mod), info: Array.isArray(info)?info:[]};
+}
+// Networth breakdown card — meaningful slices + share bars.
+let PERK_SEL=null;
+const NW_SLICES=[
+  ["items","Items"],["stockmarket","Stocks"],["cayman","Cayman"],["bank","City bank"],
+  ["vault","Vault"],["wallet","On hand"],["points","Points value"],["bazaar","Bazaar"],
+  ["displaycase","Display case"],["itemmarket","Item market"],["company","Company"],
+  ["bookie","Bookie"],["piggybank","Piggy bank"],["trade","Trade"],["auctionhouse","Auction"],
+  ["pending","Pending"],["enlisted","Enlisted"],
+];
+function networthCard(){
+  const nw=DATA.networth||{}; if(!Object.keys(nw).length) return null;
+  const total=+nw.total|| NW_SLICES.reduce((a,[k])=>a+(+nw[k]||0),0);
+  const parts=NW_SLICES.map(([k,label])=>[label,+nw[k]||0]).filter(x=>x[1]>0)
+    .sort((a,b)=>b[1]-a[1]);
+  if(!parts.length) return null;
+  const card=el("div","card");
+  const h=cardH("Net Worth","wallet");
+  h.appendChild(el("span","pill accent","$"+fmt(total))); card.appendChild(h);
+  parts.forEach(([label,v])=>{
+    card.appendChild(meterRow(label, "$"+fmt(v)+" <small>"+pct1(total?v/total*100:0)+"%</small>",
+      total?v/total*100:0));
+  });
+  return card;
+}
+function factionCard(){
+  const f=DATA.faction||{}; const name=f.faction_name||f.name;
+  if(!name && f.respect==null) return null;
+  const c=el("div","card"); c.appendChild(cardH("Faction","faction"));
+  if(name) c.appendChild(snapRow("Faction", escapeHtml(String(name))));
+  if(f.days_in_faction!=null) c.appendChild(snapRow("Days in faction", fmt(f.days_in_faction)));
+  if(f.position!=null) c.appendChild(snapRow("Position", escapeHtml(String(f.position))));
+  if(f.respect!=null) c.appendChild(snapRow("Respect", fmt(f.respect)));
+  if(f.members!=null) c.appendChild(snapRow("Members", fmt(f.members)));
+  else c.appendChild(el("div","cardnote","Respect/members need faction key access."));
+  return c;
+}
+function jobCard(){
+  const j=DATA.job||{}; const jp=DATA.jobpoints||{};
+  const company=j.company_name||j.name;
+  if(!company && j.position==null && !j.job) return null;
+  const c=el("div","card"); c.appendChild(cardH("Job","job"));
+  if(j.job||j.company_type) c.appendChild(snapRow("Job", escapeHtml(String(j.job||"Employee"))));
+  if(company) c.appendChild(snapRow("Company", escapeHtml(String(company))));
+  if(j.days_in_company!=null) c.appendChild(snapRow("Days in company", fmt(j.days_in_company)));
+  if(j.company_type!=null) c.appendChild(snapRow("Type", escapeHtml(String(j.company_type))));
+  if(j.position!=null) c.appendChild(snapRow("Position", escapeHtml(String(j.position))));
+  if(j.income!=null) c.appendChild(snapRow("Income", "$"+fmt(j.income)));
+  // job points: prefer the current company's points from jobpoints, else profile field
+  let pts=j.jobpoints;
+  if(pts==null && jp.companies && j.company_id!=null){
+    const co=jp.companies[String(j.company_id)]; if(co&&co.jobpoints!=null) pts=co.jobpoints;
+  }
+  if(pts!=null) c.appendChild(snapRow("Job points", fmt(pts)));
+  return c;
+}
+const PERK_SRC=[["faction_perks","Faction","faction"],["job_perks","Job","job"],
+  ["property_perks","Property","property"],["merit_perks","Merit","merit"],
+  ["education_perks","Education","education"],["book_perks","Book","book"],
+  ["enhancer_perks","Enhancer","enhancer"],["stock_perks","Stock","growth"]];
+function perksCard(){
+  const pk=DATA.perks||{};
+  const groups=PERK_SRC.map(([k,label,ic])=>[label,ic,(pk[k]||[])]).filter(g=>g[2].length);
+  if(!groups.length) return null;
+  const total=groups.reduce((a,g)=>a+g[2].length,0);
+  const card=el("div","card");
+  const h=cardH("Active Perks","merit"); h.appendChild(el("span","pill accent",total+"")); card.appendChild(h);
+  const strip=el("div","pstrip");
+  const lab=el("div","plab"), list=el("div");
+  if(PERK_SEL==null || !groups.find(g=>g[0]===PERK_SEL)) PERK_SEL=groups[0][0];
+  const draw=()=>{
+    strip.innerHTML=""; 
+    groups.forEach(([label,ic,arr])=>{
+      const b=el("button","pico"+(label===PERK_SEL?" on":"")); b.title=label+" ("+arr.length+")";
+      b.innerHTML=icon(ic,16); b.onclick=()=>{PERK_SEL=label;draw();};
+      strip.appendChild(b);
+    });
+    const g=groups.find(x=>x[0]===PERK_SEL);
+    lab.textContent=g[0]+" · "+g[2].length+" perk"+(g[2].length===1?"":"s");
+    list.innerHTML=g[2].map(pr=>"<div class='pl'>"+escapeHtml(String(pr))+"</div>").join("");
+  };
+  draw();
+  card.appendChild(strip); card.appendChild(lab); card.appendChild(list);
+  return card;
+}
+// Balanced masonry: place each card in the currently-shortest column so the
+// columns end level and there are no ragged empty gaps at the bottom.
+function masonry(p, cards){
+  const w = window.innerWidth || 1200;
+  const cols = w<=760 ? 1 : (w<=1080 ? 2 : 3);
+  const wrap=el("div","mrow");
+  const columns=[];
+  for(let i=0;i<cols;i++){ const c=el("div","mcol"); wrap.appendChild(c); columns.push(c); }
+  p.appendChild(wrap);                       // in the DOM so offsetHeight is real
+  cards.forEach(card=>{
+    let min=0;
+    for(let i=1;i<columns.length;i++) if(columns[i].offsetHeight<columns[min].offsetHeight) min=i;
+    columns[min].appendChild(card);
+  });
+  // re-flow once on resize (debounced) so the column count stays responsive
+  if(!window.__ovResize){
+    window.__ovResize=true; let t;
+    window.addEventListener("resize",()=>{clearTimeout(t);t=setTimeout(()=>{
+      const ov=$("#tab-overview"); if(ov && !ov.classList.contains("hidden")) renderOverview();
+    },200);});
+  }
+}
+function renderOverview(){
+  const p=$("#tab-overview"); p.innerHTML="";
+  const ws=DATA.workstats||{}, bs=DATA.battlestats||{}, sk=DATA.skills||{};
+  const bars=DATA.bars||{}, money=DATA.money||{};
+  const bK=["strength","defense","speed","dexterity"];
+  const bsTotal=bs.total!=null?+bs.total:bK.reduce((a,k)=>a+(+bs[k]||0),0);
+  const wsTotal=["manual_labor","intelligence","endurance"].reduce((a,k)=>a+(+ws[k]||0),0);
+  const score=DATA.statscore!=null?DATA.statscore:bK.reduce((a,k)=>a+Math.sqrt(+bs[k]||0),0);
+
+  // effective values + whether any modifier is active
+  const eff={}; let anyMod=false, effTotal=0;
+  bK.forEach(k=>{
+    const base=+bs[k]||0; const {mod}=statMod(bs,k);
+    const e = mod!=null ? Math.round(base*(1+mod/100)) : base;
+    eff[k]=e; effTotal+=e; if(mod!=null && mod!==0) anyMod=true;
+  });
+
+  const g=el("div","grid g2");
+
+  // Base battle stats with modifier chip + % of that stat's own goal
+  const bcard=el("div","card"); bcard.appendChild(cardH("Battle Stats","battle"));
+  bK.forEach(k=>{
+    const v=+bs[k]||0; const {mod}=statMod(bs,k);
+    const goal=getGoal(k);
+    const pctG=pct1(v/goal*100);
+    const chip = mod!=null&&mod!==0
+      ? " <small style='color:"+(mod<0?"var(--bad)":"var(--good)")+"'>"+(mod>0?"+":"")+mod+"%</small>" : "";
+    bcard.appendChild(snapRow(rowLbl(k, pretty(k)),
+      fmt(v)+chip+" <em>"+pctG+"% of goal</em>"));
+  });
+  bcard.appendChild(snapRow("Total", fmt(bsTotal)));
+  bcard.appendChild(snapRow("Stat Score", (Math.round(score*100)/100).toLocaleString()));
+  g.appendChild(bcard);
+
+  // per-stat goal editor — its own card (packs into the masonry below)
+  const goalCard=el("div","card"); goalCard.appendChild(cardH("Goal Per Stat","battle"));
+  const gg=el("div","goalgrid");
+  bK.forEach(k=>{
+    const wrap=el("label","goalitem");
+    wrap.appendChild(el("span",null,pretty(k)));
+    const inp=el("input"); inp.type="text"; inp.value=getGoal(k).toLocaleString();
+    inp.onchange=()=>{const n=parseInt(inp.value.replace(/[^\d]/g,""),10); setGoal(k,n); renderOverview();};
+    wrap.appendChild(inp); gg.appendChild(wrap);
+  });
+  goalCard.appendChild(gg);
+
+  // Effective (usable) battle stats — after drugs/perks
+  const ecard=el("div","card");
+  const eh=cardH("Effective (Usable)","effective");
+  eh.appendChild(el("span","pill"+(anyMod?" warn":" good"), anyMod?"modified":"no active effects"));
+  ecard.appendChild(eh);
+  bK.forEach(k=>{
+    const base=+bs[k]||0; const delta=eff[k]-base;
+    const note = delta!==0 ? " <em>"+(delta>0?"+":"")+fmt(delta)+"</em>" : "";
+    ecard.appendChild(snapRow(rowLbl(k, pretty(k)), fmt(eff[k])+note));
+  });
+  ecard.appendChild(snapRow("Total", fmt(effTotal)));
+  ecard.appendChild(snapRow("Stat Score",
+    (Math.round(bK.reduce((a,k)=>a+Math.sqrt(eff[k]||0),0)*100)/100).toLocaleString()));
+  g.appendChild(ecard);
+  p.appendChild(g);
+
+  // What's affecting your stats (drugs like Xanax, faction/edu/property perks)
+  const effCard=el("div","card"); effCard.style.marginTop="16px";
+  effCard.appendChild(cardH("What's Affecting Your Stats","crime"));
+  let hasInfo=false; const eg=el("div","grid g2");
+  bK.forEach(k=>{
+    const {info}=statMod(bs,k); if(!info.length) return; hasInfo=true;
+    const c=el("div"); c.appendChild(el("div","awname",rowLbl(k,pretty(k))));
+    info.forEach(line=>c.appendChild(el("div","awdesc","• "+escapeHtml(String(line)))));
+    eg.appendChild(c);
+  });
+  if(hasInfo){ effCard.appendChild(eg); p.appendChild(effCard); }
+  else if(anyMod){ effCard.appendChild(el("div","cardnote",
+    "Your stats are modified but the API returned no per-effect breakdown right now."));
+    p.appendChild(effCard); }
+
+  // ===== one balanced masonry for the whole lower section (no empty gaps) =====
+  const barCard=el("div","card"); barCard.appendChild(cardH("Bars","bars"));
+  const barRow=(name,ic,obj,cls)=>{
+    if(!obj||obj.current==null) return;
+    const cur=+obj.current||0, max=+obj.maximum||1;
+    barCard.appendChild(meterRow(rowLbl(ic,name), fmt(cur)+" / "+fmt(max), cur/max*100, cls));
+  };
+  barRow("Energy","energy",bars.energy); barRow("Nerve","nerve",bars.nerve);
+  barRow("Happy","happy",bars.happy,"maxed"); barRow("Life","life",bars.life,"good");
+  if(bars.chain && bars.chain.current!=null)
+    barCard.appendChild(meterRow(rowLbl("chain","Chain"),
+      fmt(bars.chain.current)+" / "+fmt(bars.chain.maximum),
+      (+bars.chain.current||0)/(+bars.chain.maximum||1)*100));
+  // work stats
+  const wcard=el("div","card"); wcard.appendChild(cardH("Work Stats","work"));
+  ["manual_labor","intelligence","endurance"].forEach(k=>
+    wcard.appendChild(snapRow(pretty(k), fmt(ws[k]))));
+  wcard.appendChild(snapRow("Total", fmt(wsTotal)));
+  // wallet
+  const wal=el("div","card"); wal.appendChild(cardH("Wallet","wallet"));
+  const cb=money.city_bank&&money.city_bank.amount!=null?money.city_bank.amount:null;
+  const cbLeft=money.city_bank&&money.city_bank.time_left!=null?+money.city_bank.time_left:null;
+  if(money.money_onhand!=null) wal.appendChild(snapRow("On hand", "$"+fmt(money.money_onhand)));
+  if(cb!=null){
+    const row=snapRow("City bank"+(cbLeft&&cbLeft>0?" ⓘ":""), "$"+fmt(cb));
+    if(cbLeft&&cbLeft>0){
+      row.title="Deposit matures in "+fmtDur(cbLeft)+" — you can withdraw when the timer ends";
+      row.style.cursor="help";
+    }
+    wal.appendChild(row);
+  }
+  if(money.vault_amount!=null) wal.appendChild(snapRow("Vault", "$"+fmt(money.vault_amount)));
+  if(money.cayman_bank!=null) wal.appendChild(snapRow("Cayman", "$"+fmt(money.cayman_bank)));
+  if(money.points!=null) wal.appendChild(snapRow("Points", fmt(money.points)));
+
+  // skills cards
+  const crimeLv=crimeSkillLevels();
+  const ps=DATA.personalstats||{};
+  const other=[];
+  const pushOther=(name,val,max)=>{ if(val==null||isNaN(val)) return; other.push({name, val:+val, max}); };
+  pushOther("Racing", sk.racing!=null?sk.racing:ps.racingskill, null);
+  pushOther("Hunting", sk.hunting!=null?sk.hunting:ps.huntingskill, 50);
+  pushOther("Reviving", sk.reviving!=null?sk.reviving:ps.reviveskill, 100);
+  pushOther("Busting", sk.busting!=null?sk.busting:ps.bustingskill, null);
+  Object.keys(sk).forEach(k=>{const kl=k.toLowerCase();
+    if(CRIME_SKILLS.includes(kl)||["racing","hunting","reviving","busting"].includes(kl)) return;
+    pushOther(pretty(k), +sk[k], skillMax(k));});
+  let crimeCard=null;
+  if(crimeLv.length){
+    crimeCard=el("div","card"); crimeCard.appendChild(cardH("Crime Skills","crime"));
+    crimeLv.slice().sort((a,b)=>b.skill-a.skill).forEach(cs=>{
+      const v=cs.skill; const disp=Number.isInteger(v)?v:(Math.round(v*100)/100); const mx=v>=100;
+      const val=mx
+        ? "<span style='color:var(--warn)'>"+disp+"</span> <span class='maxtag'>MAX</span>"
+        : disp+" <small>/ 100</small>";
+      crimeCard.appendChild(meterRowInline(cs.name, val, v, mx?"maxed":null));
+    });
+  }
+  let otherCard=null;
+  if(other.length){
+    otherCard=el("div","card"); otherCard.appendChild(cardH("Racing · Hunting · Reviving · Busting","skills"));
+    other.forEach(s=>{
+      const disp=Number.isInteger(s.val)?s.val:(Math.round(s.val*100)/100);
+      if(s.max){ const mx=s.val>=s.max;
+        const val=mx
+          ? "<span style='color:var(--warn)'>"+disp+"</span> <span class='maxtag'>MAX</span>"
+          : disp+" <small>/ "+s.max+"</small>";
+        otherCard.appendChild(meterRowInline(s.name, val, s.val/s.max*100, mx?"maxed":null));
+      }else{
+        otherCard.appendChild(meterRowInline(s.name+" <small style='color:var(--faint)'>(no cap)</small>",
+          String(disp), 0));
+      }
+    });
+  }
+
+  const mcards=[goalCard, barCard, wcard, wal, factionCard(), jobCard(),
+                networthCard(), perksCard(), crimeCard, otherCard].filter(Boolean);
+  masonry(p, mcards);
+
+  // headline chips row
+  const m=DATA.merits||{}; const mKeys=Object.keys(m);
+  const achieved=mKeys.reduce((a,k)=>a+(+m[k]||0),0); const possible=mKeys.length*10;
+  const cl=crimeSkillLevels(); const cmax=cl.filter(c=>c.skill>=100).length;
+  const aw=DATA.awards||{}; const awItems=awardItems();
+  const awDone=awItems.filter(i=>i.done).length;
+  const edu=DATA.education||{}; const eduDone=(edu.completed||[]).length;
+  const eduTot=Object.keys(edu.def||{}).length;
+  const mk=(t,v,n,acc)=>{const c=el("div","card");c.appendChild(el("h3",null,t));
+    c.appendChild(el("div","big"+(acc?" accent":""),v));if(n)c.appendChild(el("div","cardnote",n));return c;};
+  const chips=el("div","grid g4"); chips.style.marginTop="16px";
+  chips.appendChild(mk("Crimes Maxed", cl.length?cmax+" / "+cl.length:"—", "at skill 100", true));
+  chips.appendChild(mk("Merit Levels", achieved+" / "+possible, Math.max(0,possible-achieved)+" pending"));
+  chips.appendChild(mk("Awards", awItems.length?awDone+" / "+awItems.length:"—", "earned", true));
+  chips.appendChild(mk("Education", eduTot?eduDone+" / "+eduTot:fmt(eduDone), "courses done"));
+  p.appendChild(chips);
+}
+
+// ---- Growth (local history + date-range chart) ----------------------------
+let GR_METRIC="bstotal", GR_FROM=null, GR_TO=null;
+const GR_METRICS=[["bstotal","Battle total"],["statscore","Stat score"],
+  ["wstotal","Work total"],["strength","Strength"],["defense","Defense"],
+  ["speed","Speed"],["dexterity","Dexterity"]];
+function renderGrowth(){
+  const p=$("#tab-growth"); p.innerHTML="";
+  const hist=(DATA.history||[]).slice().sort((a,b)=>(a.ts||0)-(b.ts||0));
+  if(hist.length<1){
+    p.appendChild(el("div","infobox","No history yet. This tab logs one snapshot "+
+      "per day to <code>history.json</code> — leave it running / open it daily and "+
+      "the growth chart fills in. Torn's API has no back-history, so it starts now."));
+    return;
+  }
+  const dates=hist.map(h=>h.date);
+  if(!GR_FROM) GR_FROM=dates[0];
+  if(!GR_TO) GR_TO=dates[dates.length-1];
+
+  // controls
+  const metSeg=el("div","seg");
+  GR_METRICS.forEach(([v,l])=>{const b=el("button",GR_METRIC===v?"on":null,l);
+    b.onclick=()=>{GR_METRIC=v;renderGrowth();}; metSeg.appendChild(b);});
+  p.appendChild(metSeg);
+
+  const dr=el("div","daterow");
+  const from=el("input"); from.type="date"; from.value=GR_FROM; from.min=dates[0]; from.max=dates[dates.length-1];
+  from.onchange=()=>{GR_FROM=from.value;renderGrowth();};
+  const to=el("input"); to.type="date"; to.value=GR_TO; to.min=dates[0]; to.max=dates[dates.length-1];
+  to.onchange=()=>{GR_TO=to.value;renderGrowth();};
+  dr.appendChild(el("label",null,"From")); dr.appendChild(from);
+  dr.appendChild(el("label",null,"To")); dr.appendChild(to);
+  p.appendChild(dr);
+
+  const rows=hist.filter(h=>h.date>=GR_FROM && h.date<=GR_TO && h[GR_METRIC]!=null);
+  if(rows.length<1){ p.appendChild(el("div","infobox","No snapshots in that range yet."));
+    return; }
+
+  // delta summary
+  const a=rows[0], b=rows[rows.length-1];
+  const delta=(b[GR_METRIC]||0)-(a[GR_METRIC]||0);
+  const days=Math.max(1,((b.ts||0)-(a.ts||0))/86400);
+  const perDay=delta/days;
+  const label=(GR_METRICS.find(m=>m[0]===GR_METRIC)||[])[1]||GR_METRIC;
+  const mk=(t,v,n,acc)=>{const c=el("div","card");c.appendChild(cardH(t,"growth"));
+    c.appendChild(el("div","big"+(acc?" accent":""),v));if(n)c.appendChild(el("div","cardnote",n));return c;};
+  const g=el("div","grid g3"); g.style.marginTop="12px";
+  const dispDelta = GR_METRIC==="statscore" ? (Math.round(delta*100)/100).toLocaleString() : fmt(Math.round(delta));
+  g.appendChild(mk(label+" gain", (delta>=0?"+":"")+dispDelta, GR_FROM+" → "+GR_TO, true));
+  g.appendChild(mk("Per day", (perDay>=0?"+":"")+fmt(Math.round(perDay)), "average over range"));
+  g.appendChild(mk("Snapshots", String(rows.length), Math.round(days)+" days spanned"));
+  p.appendChild(g);
+
+  // chart
+  const card=el("div","card"); card.style.marginTop="16px";
+  card.appendChild(cardH(label+" over time","growth"));
+  card.appendChild(buildChart(rows, GR_METRIC));
+  p.appendChild(card);
+
+  p.appendChild(el("div","infobox","One snapshot is saved per day the dashboard "+
+    "fetches. Keep using it and the range grows. Delete history.json to reset."));
+}
+function buildChart(rows, metric){
+  const W=760, H=260, padL=64, padR=16, padT=16, padB=28;
+  const xs=rows.map(r=>r.ts), ys=rows.map(r=>r[metric]);
+  const xMin=Math.min(...xs), xMax=Math.max(...xs);
+  let yMin=Math.min(...ys), yMax=Math.max(...ys);
+  if(yMin===yMax){yMin-=1;yMax+=1;}
+  const px=t=>padL+(xMax===xMin?0.5:(t-xMin)/(xMax-xMin))*(W-padL-padR);
+  const py=v=>padT+(1-(v-yMin)/(yMax-yMin))*(H-padT-padB);
+  const NS="http://www.w3.org/2000/svg";
+  const svg=document.createElementNS(NS,"svg");
+  svg.setAttribute("viewBox","0 0 "+W+" "+H); svg.setAttribute("class","chart");
+  const defs=document.createElementNS(NS,"defs");
+  defs.innerHTML='<linearGradient id="gg" x1="0" x2="1"><stop offset="0" stop-color="#8ea3d8"/><stop offset="1" stop-color="#b3a8e0"/></linearGradient>';
+  svg.appendChild(defs);
+  // gridlines + y labels (4)
+  for(let i=0;i<=4;i++){
+    const v=yMin+(yMax-yMin)*i/4; const y=py(v);
+    const ln=document.createElementNS(NS,"line");
+    ln.setAttribute("x1",padL);ln.setAttribute("x2",W-padR);ln.setAttribute("y1",y);ln.setAttribute("y2",y);
+    ln.setAttribute("class","gl"); svg.appendChild(ln);
+    const tx=document.createElementNS(NS,"text");
+    tx.setAttribute("x",padL-8);tx.setAttribute("y",y+3);tx.setAttribute("text-anchor","end");
+    tx.textContent=(metric==="statscore"?(Math.round(v*10)/10):Math.round(v)).toLocaleString();
+    svg.appendChild(tx);
+  }
+  // line
+  const pts=rows.map(r=>px(r.ts)+","+py(r[metric])).join(" ");
+  const pl=document.createElementNS(NS,"polyline"); pl.setAttribute("points",pts); pl.setAttribute("class","ln");
+  svg.appendChild(pl);
+  // dots
+  rows.forEach(r=>{const c=document.createElementNS(NS,"circle");
+    c.setAttribute("cx",px(r.ts));c.setAttribute("cy",py(r[metric]));c.setAttribute("r",3);c.setAttribute("class","dt");
+    svg.appendChild(c);});
+  // x labels: first + last
+  [rows[0],rows[rows.length-1]].forEach((r,i)=>{const tx=document.createElementNS(NS,"text");
+    tx.setAttribute("x", i===0?padL:W-padR);tx.setAttribute("y",H-8);
+    tx.setAttribute("text-anchor", i===0?"start":"end"); tx.textContent=r.date; svg.appendChild(tx);});
+  return svg;
+}
+
+// ---- Skills (levels) ------------------------------------------------------
+// Non-crime skill levels we want to surface by name. If the skills selection
+// doesn't carry one, fall back to the matching personalstats field.
+const LEVEL_SKILLS = ["racing","hunting","reviving","search"];
+const SKILL_FALLBACK = {racing:"racingskill", reviving:"reviveskill", hunting:"huntingskill"};
+// ---- Education (12 majors -> modules, game-style grid + detail) ----------
+let EDU_MAJOR=null, EDU_COURSE=null, EDU_QUERY="", EDU_QUICK="tree";
+const EDU_MAJORS = {
+  BIO:"Biology", BUS:"Business", CMB:"Combat Training", CBT:"Combat Training",
+  WEP:"Combat Training", GUN:"Combat Training", CMP:"Computer Science",
+  COM:"Computer Science", CSC:"Computer Science", CMT:"Computer Science", GEN:"General Studies",
+  HAF:"Health & Fitness", HEA:"Health & Fitness", HIS:"History", LAW:"Law",
+  MTH:"Mathematics", MAT:"Mathematics", PSY:"Psychology", DEF:"Self Defense",
+  SEL:"Self Defense", SPT:"Sports Science", SPO:"Sports Science", GYM:"Sports Science",
+};
+function eduMajor(o){
+  if(o.category) return String(o.category);
+  const code=String(o.code||o.name||"").toUpperCase();
+  const m=code.match(/^([A-Z]+)/);
+  if(m && EDU_MAJORS[m[1]]) return EDU_MAJORS[m[1]];
+  if(m && EDU_MAJORS[m[1].slice(0,3)]) return EDU_MAJORS[m[1].slice(0,3)];
+  return o.field||o.type||"Other";
+}
+// results: { perk:[...], intelligence:["65 "], endurance:["10 "], manual_labor:["N "] }
+function eduResults(o){
+  const outcomes=[]; const stats={manual_labor:0,intelligence:0,endurance:0};
+  const r=o.results||o.result||{};
+  const grab=(k)=>{ const v=r[k]; if(v==null) return 0;
+    if(Array.isArray(v)) return v.reduce((a,x)=>a+(parseFloat(String(x))||0),0);
+    return parseFloat(String(v))||0; };
+  stats.intelligence=grab("intelligence"); stats.endurance=grab("endurance");
+  stats.manual_labor=grab("manual_labor")||grab("manuallabor");
+  const perk=r.perk||r.perks;
+  if(Array.isArray(perk)) perk.forEach(x=>{ if(x) outcomes.push(String(x).trim()); });
+  else if(typeof perk==="string") outcomes.push(perk.trim());
+  // also parse "Gain N stat" sentences that landed in perk
+  return {outcomes, stats};
+}
+function eduItems(){
+  const e=DATA.education||{}; let def=e.def||{};
+  const done=new Set((e.completed||[]).map(String));
+  const cur=e.current!=null?String(e.current):null;
+  const byId={}; const items=[];
+  Object.keys(def).forEach(id=>{
+    const o=def[id]||{}; const res=eduResults(o);
+    const it={id:String(id), name:o.name||o.title||("Course "+id), code:String(o.code||""),
+      major:eduMajor(o), outcomes:res.outcomes, stats:res.stats,
+      cost:o.money_cost!=null?o.money_cost:(o.cost!=null?o.cost:null),
+      duration:o.duration!=null?o.duration:(o.length!=null?o.length:null),
+      prereq:(o.prerequisites||o.prerequisite||[]).map(String),
+      done:done.has(String(id)), current:cur===String(id)};
+    items.push(it); byId[String(id)]=it;
+  });
+  // resolve prereqs to names + compute availability (all prereqs done)
+  items.forEach(it=>{
+    it.prereqNames=it.prereq.map(pid=>(byId[pid]&&byId[pid].name)||("#"+pid));
+    it.locked=it.prereq.some(pid=>byId[pid] && !byId[pid].done);
+  });
+  return {items, byId};
+}
+function eduState(it){                       // returns done|current|available|locked
+  if(it.done) return "done";
+  if(it.current) return "current";
+  return it.locked ? "locked" : "available";
+}
+function fmtDur(sec){
+  if(sec==null) return "";
+  sec=+sec; const d=Math.floor(sec/86400), h=Math.floor((sec%86400)/3600), m=Math.floor((sec%3600)/60);
+  return (d?d+"d ":"")+(h?h+"h ":"")+(m?m+"m":"")||"<1m";
+}
+function fmtDurLong(sec){                 // includes seconds — for the live countdown
+  if(sec==null||sec<0) sec=0; sec=+sec;
+  const d=Math.floor(sec/86400), h=Math.floor((sec%86400)/3600),
+        m=Math.floor((sec%3600)/60), s=Math.floor(sec%60);
+  return (d?d+"d ":"")+(h||d?h+"h ":"")+(m||h||d?m+"m ":"")+s+"s";
+}
+// exact static duration — shows every non-zero part, no rounding (7d, or 4d 21h 36m)
+function fmtExact(sec){
+  sec=+sec||0;
+  const d=Math.floor(sec/86400), h=Math.floor(sec%86400/3600),
+        m=Math.floor(sec%3600/60), s=Math.floor(sec%60);
+  const p=[]; if(d)p.push(d+"d"); if(h)p.push(h+"h"); if(m)p.push(m+"m"); if(s)p.push(s+"s");
+  return p.length?p.join(" "):"0m";
+}
+// working-stat gains as small colored pills (no sentences)
+function eduStatChips(st){
+  const chip=(v,lab,cls)=>v?"<span class='statchip "+cls+"'>"+fmt(v)+" "+lab+"</span>":"";
+  return chip(st.intelligence,"INT","int")+chip(st.endurance,"END","end")+chip(st.manual_labor,"MAN","man");
+}
+function renderEducation(){
+  const p=$("#tab-education"); p.innerHTML="";
+  const e=DATA.education||{};
+  const {items, byId}=eduItems();
+  if(!items.length){
+    p.appendChild(el("div","infobox","No education definitions returned by "+
+      "<code>torn/education</code>. Check your key and try Refresh.")); return; }
+
+  const done=items.filter(i=>i.done).length, tot=items.length;
+  // group by major
+  const majors={}; items.forEach(i=>{(majors[i.major]=majors[i.major]||[]).push(i);});
+  const majorNames=Object.keys(majors).sort();
+  if(EDU_MAJOR==null || !majors[EDU_MAJOR]) EDU_MAJOR=majorNames[0];
+
+  // ---- summary cards ----
+  const sum=(arr,f)=>arr.reduce((a,i)=>a+f(i),0);
+  const di=items.filter(i=>i.done), pe=items.filter(i=>!i.done);
+  const gInt=sum(di,i=>i.stats.intelligence), gEnd=sum(di,i=>i.stats.endurance), gMan=sum(di,i=>i.stats.manual_labor);
+  const pInt=sum(pe,i=>i.stats.intelligence), pEnd=sum(pe,i=>i.stats.endurance), pMan=sum(pe,i=>i.stats.manual_labor);
+  const mk=(t,v,n,acc,ic)=>{const c=el("div","card");c.appendChild(cardH(t,ic));
+    c.appendChild(el("div","big"+(acc?" accent":""),v));if(n)c.appendChild(el("div","cardnote",n));return c;};
+  const head=el("div","grid g4");
+  head.appendChild(mk("Completed", done+" / "+tot, pct1(done/tot*100)+"% of courses", true, "work"));
+  head.appendChild(mk("Int gained", "+"+fmt(gInt), "+"+fmt(pInt)+" pending", false, "skills"));
+  head.appendChild(mk("End / Man gained", "+"+fmt(gEnd)+" / +"+fmt(gMan), "end / manual", false, "battle"));
+  const curItem=items.find(i=>i.current);
+  const inProg=mk("In Progress", curItem?curItem.name:"None", "", false, "energy");
+  if(curItem && (e.ends_at!=null || e.timeleft!=null)){
+    const note=inProg.querySelector(".cardnote") || (()=>{const d=el("div","cardnote");inProg.appendChild(d);return d;})();
+    note.id="edu-countdown";
+    const endMs = (e.ends_at!=null ? e.ends_at*1000
+                  : ((DATA.fetched_at||Math.floor(Date.now()/1000))+ (+e.timeleft||0))*1000);
+    const paint=(el2)=>{
+      const left=Math.floor((endMs-Date.now())/1000);
+      el2.innerHTML = left>0
+        ? "<b style='color:var(--warn)'>"+fmtDurLong(left)+"</b> left"
+        : "<b style='color:var(--good)'>Ready to collect ✓</b>";
+    };
+    paint(note);                              // immediate paint via reference
+    if(window.__eduTimer) clearInterval(window.__eduTimer);
+    window.__eduTimer=setInterval(()=>{
+      const el2=document.getElementById("edu-countdown");
+      if(!el2){ clearInterval(window.__eduTimer); window.__eduTimer=null; return; }
+      paint(el2);
+    },1000);
+  } else {
+    const note=el("div","cardnote","No active course"); inProg.appendChild(note);
+  }
+  head.appendChild(inProg);
+  p.appendChild(head);
+
+  // ---- perks / learning-outcomes roll-up (have vs pending) ----
+  const gained=[], pending=[];
+  di.forEach(i=>i.outcomes.forEach(o=>gained.push(o)));
+  pe.forEach(i=>i.outcomes.forEach(o=>pending.push(o)));
+  const perkCard=(title,arr,acc,ic)=>{
+    const c=el("div","card"); const hh=cardH(title,ic);
+    hh.appendChild(el("span","pill"+(acc?" good":""), arr.length+"")); c.appendChild(hh);
+    if(arr.length){ const ul=el("div","perklist");
+      arr.forEach(x=>ul.appendChild(el("div","perkline","• "+escapeHtml(x))));
+      c.appendChild(ul);
+    } else c.appendChild(el("div","cardnote","None."));
+    return c;
+  };
+  const psum=el("div","grid g2"); psum.style.marginTop="16px";
+  psum.appendChild(perkCard("Learning outcomes gained", gained, true, "skills"));
+  psum.appendChild(perkCard("Learning outcomes pending", pending, false, "history"));
+  p.appendChild(psum);
+
+  // ---- recommended next: available courses (prereqs met), best stat/day ----
+  const avail=items.filter(i=>!i.done&&!i.current&&!i.locked);
+  const score=i=>{const s=i.stats.intelligence+i.stats.endurance+i.stats.manual_labor;
+    const days=(i.duration||86400)/86400; return s>0?s/days:0.0001*(i.outcomes.length||1);};
+  const rec=avail.slice().sort((a,b)=>score(b)-score(a)).slice(0,3);
+  if(rec.length){
+    const rc=el("div","guide"); rc.style.marginTop="16px";
+    rc.innerHTML="<h4>Recommended next (prereqs met — good to start when a course ends)</h4><ul>"+
+      rec.map(i=>"<li class='good'><b>"+escapeHtml(i.name)+"</b> — "+
+        (i.stats.intelligence?"+"+fmt(i.stats.intelligence)+" int ":"")+
+        (i.stats.endurance?"+"+fmt(i.stats.endurance)+" end ":"")+
+        (i.stats.manual_labor?"+"+fmt(i.stats.manual_labor)+" man ":"")+
+        (i.outcomes.length?"· "+escapeHtml(i.outcomes[0]):"")+
+        " <span style='color:var(--faint)'>("+fmtExact(i.duration)+")</span></li>").join("")+"</ul>";
+    p.appendChild(rc);
+  }
+
+  // ---- search (persistent — only the body below refreshes so focus is kept) ----
+  const ctl=el("div","controls"); ctl.style.marginTop="16px";
+  const search=el("input","search");
+  search.placeholder="Search all courses — name, code, learning outcome, 'intelligence'…";
+  search.value=EDU_QUERY;
+  ctl.appendChild(search); p.appendChild(ctl);
+  const body=el("div"); body.id="edu-body"; p.appendChild(body);
+
+  const majorDays=(mj)=>{                    // done/left/total course-seconds for a major
+    const list=majors[mj]||[]; let done=0,total=0;
+    list.forEach(i=>{const d=+i.duration||0; total+=d; if(i.done) done+=d;});
+    return {done, left:Math.max(0,total-done), total};
+  };
+  const dDay=sec=>Math.round((+sec||0)/86400);
+
+  function fillBody(){
+    body.innerHTML="";
+    // search results (flat, across all majors)
+    if(EDU_QUERY.trim()){
+      const q=EDU_QUERY.toLowerCase();
+      const hits=items.filter(i=>i.name.toLowerCase().includes(q)||i.code.toLowerCase().includes(q)||
+        i.major.toLowerCase().includes(q)||i.outcomes.join(" ").toLowerCase().includes(q)||
+        (("intelligence".includes(q)&&i.stats.intelligence)||("endurance".includes(q)&&i.stats.endurance)||("manual".includes(q)&&i.stats.manual_labor)));
+      const card=el("div","card"); card.style.marginTop="12px";
+      card.appendChild(cardH(hits.length+" result"+(hits.length===1?"":"s"),"education"));
+      const list=el("div","awlist");
+      hits.sort((a,b)=>a.major.localeCompare(b.major)||a.name.localeCompare(b.name))
+        .forEach(i=>list.appendChild(eduRow(i)));
+      if(!hits.length) list.appendChild(el("div","cardnote","Nothing matches."));
+      card.appendChild(list); body.appendChild(card);
+      return;
+    }
+    // 12-major grid — course count kept + a time meter (done/left/total days)
+    const grid=el("div","edugrid"); grid.style.marginTop="12px";
+    majorNames.forEach(mj=>{
+      const list=majors[mj]; const md=list.filter(i=>i.done).length, mt=list.length;
+      const complete=md>=mt, none=md===0, on=mj===EDU_MAJOR;
+      const t=majorDays(mj); const tpct=t.total?t.done/t.total*100:0;
+      const tile=el("div","edutile"+(complete?" complete":"")+(on?" on":""));
+      tile.innerHTML=
+        "<div class='et-name'>"+escapeHtml(mj)+(complete?" <span class='maxtag'>DONE</span>":"")+"</div>"+
+        "<div class='bar"+(complete?" maxed":"")+"'><i style='width:"+(mt?md/mt*100:0)+"%'></i></div>"+
+        "<div class='et-cc'"+(complete?" style='color:var(--warn)'":none?" style='color:var(--faint)'":"")+">"+md+" / "+mt+" <span style='color:var(--faint)'>courses</span></div>"+
+        "<div class='bar"+(complete?" maxed":"")+"' style='margin-top:2px;opacity:.85'><i style='width:"+tpct+"%'></i></div>"+
+        "<div class='et-cc'><span style='color:var(--good)'>"+fmtExact(t.done)+" done</span> · "+fmtExact(t.left)+" left · "+fmtExact(t.total)+" total</div>";
+      tile.onclick=()=>{EDU_MAJOR=mj;EDU_COURSE=null;fillBody();};
+      grid.appendChild(tile);
+    });
+    body.appendChild(grid);
+
+    // ---- quick-view: prerequisite tree ⇄ timeline (on top of the current body) ----
+    const qv=el("div","card"); qv.style.marginTop="16px";
+    const qh=cardH(EDU_MAJOR+" · map","education");
+    const seg=el("div","seg"); seg.style.marginLeft="auto";
+    [["tree","Tree"],["timeline","Timeline"]].forEach(([v,l])=>{
+      const b=el("button",EDU_QUICK===v?"on":null,l);
+      b.onclick=()=>{EDU_QUICK=v;fillBody();};
+      seg.appendChild(b);
+    });
+    qh.style.display="flex"; qh.style.alignItems="center"; qh.appendChild(seg);
+    qv.appendChild(qh);
+    const canvas=el("div"); canvas.style.overflowX="auto";
+    canvas.appendChild(EDU_QUICK==="timeline" ? eduTimeline(majors[EDU_MAJOR]||[]) : eduTree(majors[EDU_MAJOR]||[], byId));
+    qv.appendChild(canvas);
+    body.appendChild(qv);
+
+    // modules of the selected major + detail panel
+    const list=majors[EDU_MAJOR]||[];
+    if(EDU_COURSE==null||!list.find(i=>i.id===EDU_COURSE)) EDU_COURSE=(list[0]||{}).id;
+    const two=el("div","grid g2"); two.style.marginTop="16px";
+    const modCard=el("div","card");
+    const mh=cardH(EDU_MAJOR+" modules","education");
+    const mdone=list.filter(i=>i.done).length;
+    mh.appendChild(el("span","pill"+(mdone>=list.length?" good":""), mdone+" / "+list.length)); modCard.appendChild(mh);
+    const modList=el("div","awlist");
+    list.slice().sort((a,b)=>a.code.localeCompare(b.code)||a.name.localeCompare(b.name)).forEach(i=>{
+      const r=eduRow(i, true); r.onclick=()=>{EDU_COURSE=i.id;fillBody();};
+      if(i.id===EDU_COURSE) r.classList.add("sel");
+      modList.appendChild(r);
+    });
+    modCard.appendChild(modList); two.appendChild(modCard);
+    const detail=el("div","card"); detail.appendChild(eduDetail(byId[EDU_COURSE]||list[0]));
+    two.appendChild(detail);
+    body.appendChild(two);
+
+    body.appendChild(el("div","infobox",
+      "Green = completed, gold = fully-complete major, amber = in progress, lavender = "+
+      "available (prereqs met), grey = locked. Working stats parse from the results field; "+
+      "search covers names, codes, learning outcomes and stat keywords."));
+  }
+  search.oninput=()=>{ EDU_QUERY=search.value; fillBody(); };
+  fillBody();
+}
+function eduRow(i, compact){
+  const st=eduState(i);
+  const mark={done:"\u2713",current:"\u23F3",available:"\u25CB",locked:"\uD83D\uDD12"}[st];
+  const cls={done:"done",current:"prog",available:"avail",locked:"lock"}[st];
+  const row=el("div","awrow edu-"+st);
+  row.appendChild(el("div","awmark "+cls, mark));
+  const body=el("div","awbody");
+  const chips=eduStatChips(i.stats);
+  const lenBit=i.duration!=null?"<span class='awtag'>"+fmtExact(i.duration)+"</span>":"";
+  body.innerHTML="<div class='awname'>"+(i.code?"<span class='edu-code'>"+escapeHtml(i.code)+"</span> ":"")+
+    escapeHtml(i.name)+lenBit+(i.current?"<span class='awtag'>in progress</span>":"")+"</div>"+
+    (i.outcomes.length?"<div class='awdesc'>"+i.outcomes.map(escapeHtml).join(" · ")+"</div>":"")+
+    (chips?"<div class='chiprow'>"+chips+"</div>":"");
+  row.appendChild(body);
+  return row;
+}
+function eduDetail(i){
+  const wrap=el("div");
+  if(!i){ wrap.appendChild(el("div","cardnote","Select a module.")); return wrap; }
+  const st=eduState(i);
+  const badge={done:["Completed","good"],current:["In progress","warn"],
+    available:["Available","accent"],locked:["Locked",""]}[st];
+  const h=el("div","dt-head");
+  h.innerHTML="<div><span class='edu-code'>"+escapeHtml(i.code)+"</span><div class='dt-name'>"+escapeHtml(i.name)+"</div></div>"+
+    "<span class='pill "+badge[1]+"'>"+badge[0]+"</span>";
+  wrap.appendChild(h);
+  const sec=(label,val)=>{const d=el("div","dt-sec");
+    d.innerHTML="<div class='dt-lbl'>"+label+"</div><div class='dt-val'>"+val+"</div>"; return d;};
+  wrap.appendChild(sec("Learning outcome", i.outcomes.length?i.outcomes.map(escapeHtml).join("<br>"):"<span style='color:var(--faint)'>None</span>"));
+  const stbits=[]; if(i.stats.intelligence)stbits.push("+"+fmt(i.stats.intelligence)+" intelligence");
+  if(i.stats.endurance)stbits.push("+"+fmt(i.stats.endurance)+" endurance");
+  if(i.stats.manual_labor)stbits.push("+"+fmt(i.stats.manual_labor)+" manual labor");
+  wrap.appendChild(sec("Working stats gained", stbits.length?stbits.join("<br>"):"<span style='color:var(--faint)'>None</span>"));
+  const two=el("div"); two.style.display="flex"; two.style.gap="24px";
+  two.appendChild(sec("Length", i.duration!=null?fmtExact(i.duration):"—"));
+  two.appendChild(sec("Cost", i.cost!=null?"$"+fmt(i.cost):"—"));
+  wrap.appendChild(two);
+  if(i.prereqNames&&i.prereqNames.length)
+    wrap.appendChild(sec("Requires", i.prereqNames.map(escapeHtml).join(", ")+
+      (i.locked?" <span style='color:var(--warn)'>(not yet met)</span>":" <span style='color:var(--good)'>(met)</span>")));
+  return wrap;
+}
+
+// state -> [fill, border] using the dashboard's moon-dust palette
+function eduStateColors(st){
+  return {
+    done:    ["rgba(135,201,166,.16)","#7ec9a6"],
+    current: ["rgba(226,199,140,.16)","#e2c78c"],
+    available:["rgba(142,163,216,.16)","#8ea3d8"],
+    locked:  ["rgba(120,120,140,.12)","#565672"],
+  }[st] || ["rgba(120,120,140,.12)","#565672"];
+}
+// ---- clean prerequisite tree (orthogonal connectors, bundled capstone) ----
+function eduTree(list, byId){
+  if(!list.length){ const d=el("div","cardnote","No courses."); return d; }
+  const W=184,H=56,COLGAP=240,ROWGAP=70,PADX=16,PADY=14;
+  // tier = 1 + max prereq tier (within this major). Capstone lands on its own far column.
+  const inMajor=new Set(list.map(i=>i.id));
+  const memo={};
+  const tierOf=(i,seen)=>{
+    if(memo[i.id]!=null) return memo[i.id];
+    seen=seen||new Set(); if(seen.has(i.id)) return 0; seen.add(i.id);
+    const pre=i.prereq.filter(p=>inMajor.has(p));
+    let t=0; pre.forEach(p=>{ const pi=byId[p]; if(pi) t=Math.max(t,tierOf(pi,seen)+1); });
+    return memo[i.id]=t;
+  };
+  list.forEach(i=>tierOf(i));
+  const maxTier=Math.max(0,...list.map(i=>memo[i.id]));
+  // group by tier, assign positions
+  const cols={}; list.forEach(i=>{(cols[memo[i.id]]=cols[memo[i.id]]||[]).push(i);});
+  const pos={}; let maxRows=0;
+  Object.keys(cols).forEach(t=>{ maxRows=Math.max(maxRows,cols[t].length); });
+  Object.keys(cols).forEach(t=>{
+    cols[t].sort((a,b)=>a.code.localeCompare(b.code));
+    cols[t].forEach((i,idx)=>{ pos[i.id]=[PADX+(+t)*COLGAP, PADY+idx*ROWGAP]; });
+  });
+  const width=PADX*2+(maxTier+1)*COLGAP - (COLGAP-W);
+  const height=PADY*2+maxRows*ROWGAP;
+  const cx=(id)=>pos[id][0], cyid=(id)=>pos[id][1]+H/2;
+  let edges="", nodes="";
+  list.forEach(i=>{
+    const pre=i.prereq.filter(p=>inMajor.has(p) && pos[p]);
+    // "capstone" = depends on many; draw its edges faint
+    const cap=pre.length>=Math.max(3, Math.ceil(list.length*0.5));
+    pre.forEach(p=>{
+      const sx=cx(p)+W, sy=cyid(p), tx=cx(i.id), ty=cyid(i.id), mx=(sx+tx)/2;
+      edges+="<path d='M"+sx+","+sy+" H"+mx+" V"+ty+" H"+tx+"' fill='none' stroke='"+
+        (cap?"#3a3a4e":"#5b5b78")+"' stroke-width='"+(cap?1:1.5)+"' opacity='"+(cap?.5:.8)+"'/>";
+    });
+  });
+  list.forEach(i=>{
+    const [x,y]=pos[i.id]; const [bg,bd]=eduStateColors(eduState(i));
+    const tcol=eduState(i)==="locked"?"#8b8ba0":"#e6e3f0";
+    nodes+="<g><rect x='"+x+"' y='"+y+"' width='"+W+"' height='"+H+"' rx='8' fill='"+bg+"' stroke='"+bd+"' stroke-width='1.5'/>"+
+      "<foreignObject x='"+x+"' y='"+y+"' width='"+W+"' height='"+H+"'>"+
+      "<div xmlns='http://www.w3.org/1999/xhtml' style='height:100%;box-sizing:border-box;padding:6px 10px;display:flex;flex-direction:column;justify-content:center'>"+
+      "<div style='font-family:monospace;font-size:9px;color:"+bd+";margin-bottom:2px'>"+escapeHtml(i.code||"")+"</div>"+
+      "<div style='font-size:11.5px;font-weight:600;color:"+tcol+";line-height:1.2;overflow-wrap:break-word;word-break:break-word'>"+escapeHtml(i.name||"")+"</div>"+
+      "</div></foreignObject></g>";
+  });
+  const holder=el("div");
+  holder.innerHTML="<svg width='"+width+"' height='"+height+"' viewBox='0 0 "+width+" "+height+
+    "' xmlns='http://www.w3.org/2000/svg'>"+edges+nodes+"</svg>";
+  return holder;
+}
+// ---- timeline / Gantt strip: courses end-to-end by EXACT duration ----
+function eduTimeline(list){
+  if(!list.length){ return el("div","cardnote","No courses."); }
+  const order={done:0,current:1,available:2,locked:3};
+  const items=list.slice().filter(i=>i.duration!=null).sort((a,b)=>
+    (order[eduState(a)]-order[eduState(b)]) || (a.code||"").localeCompare(b.code||""));
+  const total=items.reduce((a,i)=>a+(+i.duration||0),0) || 1;
+  const doneSec=items.filter(i=>eduState(i)==="done").reduce((a,i)=>a+(+i.duration||0),0);
+  const nowSec=items.filter(i=>eduState(i)==="current").reduce((a,i)=>a+(+i.duration||0),0);
+  const holder=el("div"); holder.style.minWidth="520px";
+  // summary
+  const sum=el("div"); sum.style.cssText="display:flex;justify-content:space-between;font-size:12px;margin-bottom:8px";
+  sum.innerHTML="<span style='color:var(--muted)'>Total <b style='color:var(--text)'>"+fmtExact(total)+"</b></span>"+
+    "<span><b style='color:var(--good)'>"+fmtExact(doneSec)+" done</b> · <b style='color:var(--warn)'>"+fmtExact(nowSec)+" now</b> · "+fmtExact(total-doneSec-nowSec)+" ahead</span>";
+  holder.appendChild(sum);
+  // strip
+  const wrap=el("div"); wrap.style.position="relative";
+  const strip=el("div"); strip.style.cssText="display:flex;height:32px;border-radius:8px;overflow:hidden;border:1px solid var(--border)";
+  items.forEach(i=>{
+    const w=(+i.duration||0)/total*100; const [,bd]=eduStateColors(eduState(i));
+    const seg=el("div"); seg.title=(i.name||"")+" — "+fmtExact(i.duration);
+    seg.style.cssText="flex:0 0 "+w+"%;background:"+bd+";opacity:"+(eduState(i)==="locked"?".55":".9")+
+      ";display:flex;align-items:center;justify-content:center;border-right:1px solid rgba(15,16,23,.5)";
+    if(w>10) seg.innerHTML="<span style='font-size:10.5px;font-weight:700;color:#12131a'>"+fmtExact(i.duration)+"</span>";
+    strip.appendChild(seg);
+  });
+  wrap.appendChild(strip);
+  // you-are-here marker at the done/now boundary
+  const mk=el("div"); const mp=(doneSec/total*100);
+  mk.style.cssText="position:absolute;top:-3px;height:38px;left:"+mp+"%;width:2px;background:var(--warn)";
+  const mlab=el("div"); mlab.style.cssText="position:absolute;top:-18px;left:"+mp+"%;transform:translateX(-50%);font-size:10px;color:var(--warn);font-weight:700;white-space:nowrap";
+  mlab.textContent="▼ you are here";
+  wrap.appendChild(mk); wrap.appendChild(mlab);
+  holder.appendChild(wrap);
+  // names under wide segments
+  const names=el("div"); names.style.cssText="display:flex;margin-top:4px";
+  items.forEach(i=>{ const w=(+i.duration||0)/total*100; const d=el("div");
+    d.style.cssText="flex:0 0 "+w+"%;font-size:10px;color:var(--muted);text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px";
+    d.textContent=w>10?(i.name||""):""; names.appendChild(d); });
+  holder.appendChild(names);
+  return holder;
+}
+
+function crimeUniques(id, c){
+  // returns {gathered, total, missing} from master (torn/crimes) vs your ids
+  const d=(DATA.crime_defs||{})[String(id)];
+  if(!d || !d.unique_total) return null;
+  const master=new Set((d.unique_ids||[]).map(Number));
+  const mine=(c._gathered_unique_ids||[]).map(Number).filter(x=>master.has(x));
+  const gathered=mine.length, total=d.unique_total;
+  return {gathered, total, missing:Math.max(0,total-gathered)};
+}
+function renderCrimes(){
+  const p=$("#tab-crimes"); p.innerHTML="";
+  const crimes=DATA.crimes||{};
+  const ids=Object.keys(crimes).map(Number).sort((a,b)=>a-b);
+  if(!ids.length){ p.appendChild(el("div","infobox",
+    "No crime data came back. Make sure your key has access and your account is "+
+    "migrated to Crimes 2.0.")); return; }
+
+  // totals
+  let tAtt=0,tSucc=0,tFail=0,tCrit=0,maxed=0,n=0,tMoney=0;
+  ids.forEach(id=>{const c=crimes[id]||{},a=c.attempts||{};
+    tAtt+=a.total||0;tSucc+=a.success||0;tFail+=a.fail||0;tCrit+=a.critical_fail||0;
+    if(c.skill!=null){n++; if(c.skill>=100)maxed++;}
+    if(c.rewards&&c.rewards.money) tMoney+=c.rewards.money;});
+  const mk=(t,v,nn,acc,ic)=>{const c=el("div","card");c.appendChild(cardH(t,ic));
+    c.appendChild(el("div","big"+(acc?" accent":""),v));if(nn)c.appendChild(el("div","cardnote",nn));return c;};
+  const head=el("div","grid g4");
+  head.appendChild(mk("Crimes Maxed", maxed+" / "+n, "at skill 100", true, "crime"));
+  head.appendChild(mk("Total Attempts", fmt(tAtt), pct1(tAtt?tSucc/tAtt*100:0)+"% success", false, "battle"));
+  head.appendChild(mk("Total Fails", fmt(tFail), fmt(tCrit)+" critical", false, "defense"));
+  head.appendChild(mk("Money Earned", "$"+fmt(tMoney), "lifetime from crimes", true, "wallet"));
+  p.appendChild(head);
+
+  // ---- Criminal Record: attempts grouped by category (like the game) ----
+  // Flip CRIM_RECORD_MODE to "success" if the in-game numbers count successes.
+  const catTot={};
+  ids.forEach(id=>{const c=crimes[id]||{},a=c.attempts||{};
+    const cat=((DATA.crime_defs||{})[String(id)]||{}).category||"Other";
+    const val=CRIM_RECORD_MODE==="success"?(a.success||0):(a.total||0);
+    catTot[cat]=(catTot[cat]||0)+val;});
+  const ps=DATA.personalstats||{};
+  const oc=ps.organisedcrimes!=null?ps.organisedcrimes:(ps.organizedcrimes!=null?ps.organizedcrimes:null);
+  const catKeys=Object.keys(catTot).sort((a,b)=>catTot[b]-catTot[a]);
+  if(catKeys.length){
+    const grand=catKeys.reduce((a,k)=>a+catTot[k],0);
+    const rec=el("div","card"); rec.style.marginTop="16px";
+    const rh=cardH("Criminal Record","crime");
+    rh.appendChild(el("span","pill","by category")); rec.appendChild(rh);
+    const grid=el("div","grid g2");
+    grid.appendChild(snapRow("<b>Criminal offenses</b>", "<b>"+fmt(grand)+"</b>"));
+    catKeys.forEach(k=>grid.appendChild(snapRow(escapeHtml(pretty(k)), fmt(catTot[k]))));
+    if(oc!=null) grid.appendChild(snapRow("Organized crimes", fmt(oc)));
+    rec.appendChild(grid);
+    rec.appendChild(el("div","cardnote",
+      "Totals are "+CRIM_RECORD_MODE+" grouped by the crime's category. If they don't "+
+      "match the game, flip CRIM_RECORD_MODE at the top of the file to \"success\"."));
+    p.appendChild(rec);
+  }
+
+  // per-crime detailed cards
+  ids.forEach(id=>{
+    const c=crimes[id]||{}; const a=c.attempts||{};
+    const d=(DATA.crime_defs||{})[String(id)]||{};
+    const skill=c.skill!=null?+c.skill:null; const mxd=skill!=null&&skill>=100;
+    const succ=a.total?pct1((a.success||0)/a.total*100):null;
+    const uq=crimeUniques(id,c);
+
+    const card=el("div","card"); card.style.marginTop="16px";
+    const h=cardH(crimeName(id),"crime");
+    if(skill!=null) h.appendChild(el("span","pill"+(mxd?" warn":" accent"),
+        "skill "+(Number.isInteger(skill)?skill:Math.round(skill*100)/100)+(mxd?" MAX":"")));
+    if(uq) h.appendChild(el("span","pill","uniques "+uq.gathered+" / "+uq.total));
+    card.appendChild(h);
+
+    // category + enhancer line (from the API)
+    const meta=[];
+    if(d.category) meta.push(rowLbl("crime", d.category));
+    if(d.enhancer) meta.push(rowLbl("effective","Enhancer: "+d.enhancer));
+    if(meta.length){ const m=el("div","cardnote"); m.style.margin="0 0 8px";
+      m.innerHTML=meta.join("&nbsp;&nbsp;·&nbsp;&nbsp;"); card.appendChild(m); }
+
+    if(skill!=null) card.appendChild(meterRow("Skill level",
+      (mxd
+        ? "<span style='color:var(--warn)'>100</span> <span class='maxtag'>MAX</span>"
+        : (Number.isInteger(skill)?skill:Math.round(skill*100)/100)+" <small>/ 100</small>"),
+      skill, mxd?"maxed":null));
+    if(uq) card.appendChild(meterRow("Unique outcomes",
+      (uq.missing===0
+        ? uq.gathered+" / "+uq.total+" <span class='maxtag'>ALL</span>"
+        : uq.gathered+" / "+uq.total+" <small>· "+uq.missing+" missing</small>"),
+      uq.total?uq.gathered/uq.total*100:0, uq.missing===0?"maxed":null));
+
+    // detailed pass/fail breakdown
+    const mini=el("div","mini");
+    mini.innerHTML=
+      "<div>Attempts <b>"+fmt(a.total)+"</b></div>"+
+      "<div>Pass <b style='color:var(--good)'>"+fmt(a.success)+"</b></div>"+
+      "<div>Fail <b style='color:var(--bad)'>"+fmt(a.fail)+"</b></div>"+
+      "<div>Critical fail <b style='color:var(--bad)'>"+fmt(a.critical_fail)+"</b></div>"+
+      (succ!=null?"<div>Success rate <b>"+succ+"%</b></div>":"")+
+      (c.nerve_spent!=null?"<div>Nerve spent <b>"+fmt(c.nerve_spent)+"</b></div>":"")+
+      (c.progression_bonus!=null?"<div>Progression <b>"+c.progression_bonus+"</b></div>":"")+
+      (c.rewards&&c.rewards.money!=null?"<div>Money <b>$"+fmt(c.rewards.money)+"</b></div>":"");
+    card.appendChild(mini);
+
+    // per-subcrime pass/fail — only NAMED where we've verified the mapping.
+    const subs=(a.subcrimes||[]).slice().sort((x,y)=>(x.id||0)-(y.id||0));
+    const names=SUBCRIME_NAMES[id];
+    if(subs.length && names){
+      const tbl=el("table");
+      tbl.innerHTML="<thead><tr><th>Subcrime</th><th class='num'>Attempts</th>"+
+        "<th class='num'>Pass</th><th class='num'>Fail</th><th class='num'>Rate</th></tr></thead>";
+      const tb=el("tbody");
+      subs.forEach((s,i)=>{
+        const nm=names[i] || ("Subcrime "+s.id+" (unnamed)");
+        const unnamed=!names[i];
+        const r=s.total?pct1((s.success||0)/s.total*100)+"%":"—";
+        const tr=el("tr");
+        tr.innerHTML="<td"+(unnamed?" style='color:var(--faint)'":"")+">"+nm+"</td>"+
+          "<td class='num'>"+fmt(s.total)+"</td>"+
+          "<td class='num'>"+fmt(s.success)+"</td><td class='num'>"+fmt(s.fail)+"</td>"+
+          "<td class='num'>"+r+"</td>";
+        tb.appendChild(tr);
+      });
+      tbl.appendChild(tb); card.appendChild(tbl);
+    } else if(subs.length){
+      card.appendChild(el("div","cardnote",
+        "Crime-level stats only — subcrimes for this crime aren't name-mapped yet."));
+    }
+    if(uq && uq.missing>0){
+      card.appendChild(el("div","cardnote",
+        "Missing "+uq.missing+" unique"+(uq.missing>1?"s":"")+" — names & conditions on "+
+        "<a href='https://torn.report/uniques' target='_blank'>torn.report</a>."));
+    }
+    p.appendChild(card);
+  });
+
+  p.appendChild(el("div","infobox",
+    "Everything here is live from the API: names, categories, enhancers and unique "+
+    "totals from torn/crimes; skill, pass/fail/critical-fail and money per crime and "+
+    "subcrime. Unique counts match your gathered outcome IDs against the master list. "+
+    "Subcrime names are wiki-sourced and verified only where shown."));
+}
+
+// ---- Awards: Merits · Honors · Medals ------------------------------------
+let AW_SECTION="merits", AW_AWFILTER="all", AW_AWQUERY="", AW_CAT=null, SIM_ON=false, SIM_LEVELS=null;
+
+// merit per-level effects (from the Torn wiki). per=null => show level only.
+// keyed to the EXACT merit names the API returns (lowercased). Effects are the
+// per-level values shown on Torn's own merit tooltips.
+const MERIT_FX={
+  "nerve bar":{per:1,u:"",label:"max nerve",icon:"nerve"},
+  "critical hit rate":{per:0.5,u:"%",label:"crit rate",icon:"crime"},
+  "life points":{per:5,u:"%",label:"max life",icon:"life"},
+  "crime xp":{per:1,u:"%",label:"crime exp & skill",icon:"crime"},
+  "education length":{per:-2,u:"%",label:"course length",icon:"education"},
+  "awareness":{per:20,u:"%",label:"item frequency",icon:"effective"},
+  "bank interest":{per:5,u:"%",label:"bank interest",icon:"wallet"},
+  "masterful looting":{per:5,u:"%",label:"mug money",icon:"wallet"},
+  "stealth":{per:0.2,u:"",label:"stealth",icon:"effective"},
+  "hospitalizing":{per:5,u:"%",label:"hosp time",icon:"life"},
+  "addiction mitigation":{per:-2,u:"%",label:"addiction effect",icon:"nerve"},
+  "employee effectiveness":{per:1,u:"",label:"employee effectiveness",icon:"work"},
+  "brawn":{per:3,u:"%",label:"strength",icon:"strength"},
+  "protection":{per:3,u:"%",label:"defense",icon:"defense"},
+  "sharpness":{per:3,u:"%",label:"speed",icon:"speed"},
+  "evasion":{per:3,u:"%",label:"dexterity",icon:"dexterity"},
+};
+function meritFx(name){
+  const k=String(name).toLowerCase();
+  if(MERIT_FX[k]) return MERIT_FX[k];
+  // every weapon mastery: +1% damage and +0.2 accuracy per level
+  if(k.endsWith("mastery")) return {mast:true,icon:"battle"};
+  return {per:null,u:"",label:"",icon:"merit"};
+}
+function meritIcon(name){ return meritFx(name).icon || "merit"; }
+
+// ---- award items (honors + medals) with category from the API ----
+function awardItems(){
+  const a=DATA.awards||{}; const hd=a.honors_def||{}, md=a.medals_def||{};
+  const hset=new Set((a.honors_awarded||[]).map(String));
+  const mset=new Set((a.medals_awarded||[]).map(String));
+  const items=[];
+  Object.keys(hd).forEach(id=>{const o=hd[id]||{};
+    items.push({id,type:"honor",name:o.name||("Honor "+id),desc:o.description||"",
+      cat:o.category||"misc",rarity:o.rarity||"",circ:o.circulation,done:hset.has(String(id))});});
+  Object.keys(md).forEach(id=>{const o=md[id]||{};
+    items.push({id,type:"medal",name:o.name||("Medal "+id),desc:o.description||"",
+      cat:o.category||"misc",rarity:o.rarity||"",circ:o.circulation,done:mset.has(String(id))});});
+  return items;
+}
+
+// SVG progress ring; size>40 prints the % in the middle
+function awardRing(pct, size, done){
+  pct=Math.max(0,Math.min(100,pct||0));
+  const s=size, r=s/2-Math.max(3,size*0.09), c=2*Math.PI*r, off=c*(1-pct/100);
+  const col=done?"#e2c78c":"#8ea3d8", sw=size>40?5:3.5;
+  const txt=size>40?"<text x='"+(s/2)+"' y='"+(s/2+4)+"' text-anchor='middle' font-size='12' font-weight='700' fill='var(--text)'>"+Math.round(pct)+"%</text>":"";
+  return "<svg width='"+s+"' height='"+s+"' viewBox='0 0 "+s+" "+s+"' style='flex:0 0 auto'>"+
+    "<circle cx='"+(s/2)+"' cy='"+(s/2)+"' r='"+r+"' fill='none' stroke='rgba(160,160,190,.14)' stroke-width='"+sw+"'/>"+
+    "<circle cx='"+(s/2)+"' cy='"+(s/2)+"' r='"+r+"' fill='none' stroke='"+col+"' stroke-width='"+sw+"' stroke-linecap='round' stroke-dasharray='"+c+"' stroke-dashoffset='"+off+"' transform='rotate(-90 "+(s/2)+" "+(s/2)+")'/>"+
+    txt+"</svg>";
+}
+// account-wide overview band (headline + chaser), all from real Torn data
+function awardBand(p){
+  const all=awardItems(); if(!all.length) return;
+  const earned=all.filter(i=>i.done).length, total=all.length;
+  const honE=all.filter(i=>i.type==="honor"&&i.done).length;
+  const medE=all.filter(i=>i.type==="medal"&&i.done).length;
+  const cm={}; all.forEach(i=>{(cm[i.cat]=cm[i.cat]||{d:0,t:0}).t++; if(i.done)cm[i.cat].d++;});
+  const catNames=Object.keys(cm), catsDone=catNames.filter(c=>cm[c].d>=cm[c].t).length;
+
+  const band=el("div","awband");
+  band.innerHTML=
+    "<div class='ab-num'><div class='ab-big'>"+fmt(earned)+" <span class='ab-sub'>/ "+fmt(total)+"</span></div>"+
+      "<div class='ab-lbl'>"+pct1(earned/total*100)+"% of all awards earned</div></div>"+
+    "<div class='ab-num ab-div'><div class='ab-mid'>"+catsDone+" <span class='ab-sub'>/ "+catNames.length+"</span></div>"+
+      "<div class='ab-lbl'>categories completed</div></div>"+
+    "<div class='ab-num ab-div'><div class='ab-mid'>"+fmt(honE)+" <span class='ab-sub2'>honors</span> · "+fmt(medE)+" <span class='ab-sub2'>medals</span></div>"+
+      "<div class='ab-lbl'>earned by type</div></div>";
+  const sb=el("button","awshare"); sb.innerHTML=icon("award",14)+"Share card";
+  sb.onclick=()=>openShareCard({earned,total,catsDone,catsTotal:catNames.length,honE,medE,all});
+  band.appendChild(sb);
+  p.appendChild(band);
+
+  const withCirc=all.filter(i=>i.circ!=null);
+  const closest=catNames.map(c=>[c,cm[c].t-cm[c].d]).filter(x=>x[1]>0).sort((a,b)=>a[1]-b[1]).slice(0,3);
+  const missing=withCirc.filter(i=>!i.done).sort((a,b)=>a.circ-b.circ).slice(0,3);
+  const rarest=withCirc.filter(i=>i.done).sort((a,b)=>a.circ-b.circ).slice(0,3);
+  const chaseCard=(ic,title,lines,empty)=>{const c=el("div","chcard");
+    c.innerHTML="<div class='ch-h'>"+icon(ic,13)+escapeHtml(title)+"</div>"+
+      (lines.length?"<div class='ch-body'>"+lines.join("<br>")+"</div>":"<div class='ch-body' style='color:var(--faint)'>"+empty+"</div>");
+    return c;};
+  const chase=el("div","awchase");
+  chase.appendChild(chaseCard("award","Closest to complete",
+    closest.map(([c,n])=>"<b>"+escapeHtml(pretty(c))+"</b> <span class='ab-faint'>· "+n+" left</span>"),
+    "All categories complete."));
+  chase.appendChild(chaseCard("award","Missing rares (worth chasing)",
+    missing.map(i=>escapeHtml(i.name)+" <span class='ab-faint'>· "+fmt(i.circ)+" have this</span>"),
+    "None outstanding."));
+  chase.appendChild(chaseCard("merit","Your rarest owned",
+    rarest.map(i=>escapeHtml(i.name)+" <span class='ab-gold'>· "+fmt(i.circ)+" have this</span>"),
+    "None yet."));
+  p.appendChild(chase);
+}
+function openShareCard(s){
+  const rarest=s.all.filter(i=>i.circ!=null&&i.done).sort((a,b)=>a.circ-b.circ).slice(0,3);
+  const name=(DATA.profile&&DATA.profile.name)||"Player";
+  const ov=el("div","shareov");
+  ov.innerHTML=
+    "<div class='sharecard' onclick='event.stopPropagation()'>"+
+      "<div class='sc-head'>"+escapeHtml(name)+" · Torn Awards</div>"+
+      "<div class='sc-big'>"+fmt(s.earned)+" <span>/ "+fmt(s.total)+"</span></div>"+
+      "<div class='sc-sub'>"+pct1(s.earned/s.total*100)+"% of all awards earned</div>"+
+      "<div class='sc-row'><span>Categories completed</span><b>"+s.catsDone+" / "+s.catsTotal+"</b></div>"+
+      "<div class='sc-row'><span>Honors · Medals</span><b>"+fmt(s.honE)+" · "+fmt(s.medE)+"</b></div>"+
+      "<div class='sc-lbl'>Rarest owned</div>"+
+      rarest.map(i=>"<div class='sc-row'><span>"+escapeHtml(i.name)+"</span><b>"+fmt(i.circ)+" have this</b></div>").join("")+
+      "<div class='sc-foot'>Screenshot to share</div>"+
+    "</div>";
+  ov.onclick=()=>ov.remove();
+  document.body.appendChild(ov);
+}
+
+function renderAwards(){
+  const p=$("#tab-awards"); p.innerHTML="";
+  // section toggle
+  const seg=el("div","seg"); seg.style.marginBottom="16px";
+  [["merits","Merits"],["honors","Honors"],["medals","Medals"]].forEach(([v,l])=>{
+    const b=el("button",AW_SECTION===v?"on":null,icon(v==="merits"?"merit":"award",14)+l);
+    b.onclick=()=>{AW_SECTION=v;SIM_ON=false;renderAwards();};
+    seg.appendChild(b);
+  });
+  p.appendChild(seg);
+  if(AW_SECTION==="merits"){ SIM_ON?renderMeritSim(p):renderMeritsSection(p); }
+  else renderAwardSection(p, AW_SECTION==="honors"?"honor":"medal");
+}
+
+// ---- Merits section (card grid + effects + reset planner + simulator) ----
+function meritCard(name, lvl, fx){
+  const max=lvl>=10, none=lvl===0;
+  const c=el("div","meritcard"+(max?" maxed":""));
+  const top="<div class='mc-top'>"+icon(fx.icon,15)+"<span class='mc-name'>"+escapeHtml(name)+"</span>"+
+      "<span class='mc-lvl'"+(max?" style='color:var(--warn)'":none?" style='color:var(--faint)'":"")+">"+lvl+"/10"+
+      (max?" <span class='maxtag'>MAX</span>":"")+"</span></div>"+
+    "<div class='bar"+(max?" maxed":"")+"' style='margin:7px 0 8px'><i style='width:"+(lvl*10)+"%'></i></div>";
+  let fxHtml;
+  if(fx.mast){                                   // weapon mastery: +1% dmg, +0.2 acc per level
+    const nd=lvl*1, na=Math.round(lvl*0.2*10)/10;
+    fxHtml=
+      "<div class='mc-fx'><span>Now</span><b style='color:"+(none?"var(--faint)":"var(--good)")+"'>+"+nd+"% dmg · +"+na+" acc</b></div>"+
+      "<div class='mc-fx'><span>At max</span><span style='color:var(--muted)'>+10% dmg · +2 acc</span></div>";
+  } else if(fx.per!=null){
+    const now=lvl*fx.per, mx=10*fx.per;
+    const sign=v=>(v>0?"+":"")+(Math.round(v*10)/10)+fx.u;
+    fxHtml=
+      "<div class='mc-fx'><span>Now</span><b style='color:"+(none?"var(--faint)":"var(--good)")+"'>"+sign(now)+" "+fx.label+"</b></div>"+
+      "<div class='mc-fx'><span>At max</span><span style='color:var(--muted)'>"+sign(mx)+" "+fx.label+"</span></div>";
+  } else {
+    fxHtml="<div class='mc-fx'><span style='color:var(--faint)'>"+(fx.label||"effect not tabled")+"</span></div>";
+  }
+  c.innerHTML=top+fxHtml;
+  return c;
+}
+function renderMeritsSection(p){
+  const m=DATA.merits||{}; const keys=Object.keys(m);
+  if(!keys.length){ p.appendChild(el("div","infobox",
+    "No merits returned — the <code>merits</code> selection needs Limited access.")); return; }
+  const MAX=10;
+  const achieved=keys.reduce((a,k)=>a+(+m[k]||0),0), possible=keys.length*MAX;
+  const maxed=keys.filter(k=>(+m[k]||0)>=MAX).length;
+  const mk=(t,v,n,acc)=>{const c=el("div","card");c.appendChild(cardH(t,"merit"));
+    c.appendChild(el("div","big"+(acc?" accent":""),v));if(n)c.appendChild(el("div","cardnote",n));return c;};
+  const head=el("div","grid g4");
+  head.appendChild(mk("Achieved", fmt(achieved)+" / "+possible, "merit levels", true));
+  head.appendChild(mk("Maxed", maxed+" / "+keys.length, "at level 10"));
+  head.appendChild(mk("Pending", fmt(Math.max(0,possible-achieved)), "levels to max"));
+  const simCard=el("div","card"); simCard.style.cursor="pointer";
+  simCard.appendChild(cardH("Reset Simulator","effective"));
+  simCard.appendChild(el("div","cardnote","Try a what-if reset →"));
+  simCard.onclick=()=>{SIM_ON=true;renderAwards();};
+  head.appendChild(simCard);
+  p.appendChild(head);
+
+  // card grid (sorted by level desc)
+  const grid=el("div","meritgrid"); grid.style.marginTop="16px";
+  keys.sort((a,b)=>(+m[b]||0)-(+m[a]||0)).forEach(k=>{
+    grid.appendChild(meritCard(pretty(k), +m[k]||0, meritFx(k)));
+  });
+  p.appendChild(grid);
+
+  // reset planner (personalized)
+  const lvl=(name)=>{const hit=keys.find(k=>k.toLowerCase()===name.toLowerCase());
+    return hit!=null?(+m[hit]||0):(m[name]!=null?+m[name]:null);};
+  const CORE=[["Brawn","+3%/lvl strength"],["Protection","+3%/lvl defense"],
+    ["Sharpness","+3%/lvl speed"],["Evasion","+3%/lvl dexterity"],
+    ["Nerve Bar","more nerve for crimes/OCs"],["Education Length","-2%/lvl course length"]];
+  const SITU=[["Masterful Looting","only if you loot NPCs"],["Crime XP","only if you grind crimes"],
+    ["Addiction Mitigation","only if you use drugs heavily"],["Bank Interest","only if you bank-invest"],
+    ["Awareness","niche"]];
+  const MAST=["Heavy Artillery Mastery","Machine Gun Mastery","Rifle Mastery","SMG Mastery",
+    "Shotgun Mastery","Pistol Mastery","Temporary Mastery","Club Mastery","Piercing Mastery",
+    "Slashing Mastery","Mechanical Mastery"];
+  const priority=[],missing=[],reconsider=[];
+  CORE.forEach(([n,w])=>{const l=lvl(n);
+    if(l==null||l===0)missing.push([n,w]); else priority.push([n+" ("+l+"/10)",(l<MAX?"max it — ":"maxed — ")+w]);});
+  const held=MAST.filter(n=>{const l=lvl(n);return l!=null&&l>0;});
+  if(held.length>1)reconsider.push(["Extra masteries: "+held.map(pretty).join(", "),
+    "keep only the mastery for the weapon you actually use"]);
+  SITU.forEach(([n,w])=>{const l=lvl(n); if(l!=null&&l>0)reconsider.push([n+" ("+l+"/10)","situational — "+w]);});
+  const guide=el("div","guide"); guide.style.marginTop="16px";
+  guide.innerHTML="<h4>Prioritize (you have — max them)</h4><ul>"+
+    (priority.length?priority.map(([n,w])=>"<li class='good'><b>"+escapeHtml(n)+"</b> — "+escapeHtml(w)+"</li>").join(""):"<li>None yet.</li>")+
+    "</ul><h4>Missing — worth getting</h4><ul>"+
+    (missing.length?missing.map(([n,w])=>"<li class='good'><b>"+escapeHtml(n)+"</b> — "+escapeHtml(w)+"</li>").join(""):"<li>You hold all core merits.</li>")+
+    "</ul><h4>Reconsider / drop after reset</h4><ul>"+
+    (reconsider.length?reconsider.map(([n,w])=>"<li class='warn'><b>"+escapeHtml(n)+"</b> — "+escapeHtml(w)+"</li>").join(""):"<li>Nothing obviously wasteful.</li>")+"</ul>";
+  p.appendChild(guide);
+  p.appendChild(el("div","infobox",
+    "Merit effects are from the Torn wiki (crit rate & weapon-mastery values are "+
+    "approximate). The planner sorts your current merits into keep / get / drop — "+
+    "tell me your build and weapon and I'll tighten it."));
+}
+
+// ---- Merit reset simulator ----
+const triCost=l=>l*(l+1)/2;
+function renderMeritSim(p){
+  const m=DATA.merits||{}; const keys=Object.keys(m).sort((a,b)=>(+m[b]||0)-(+m[a]||0));
+  if(SIM_LEVELS==null){ SIM_LEVELS={}; keys.forEach(k=>SIM_LEVELS[k]=+m[k]||0); }
+  const budget=keys.reduce((a,k)=>a+triCost(+m[k]||0),0);
+  const spent=keys.reduce((a,k)=>a+triCost(SIM_LEVELS[k]||0),0);
+  const rem=budget-spent, over=spent>budget;
+
+  const bar=el("div","card");
+  const bh=cardH("Reset Simulator","effective");
+  const back=el("button","goalsave","← Back to merits"); back.style.marginLeft="auto";
+  back.onclick=()=>{SIM_ON=false;renderAwards();}; bh.appendChild(back); bh.style.display="flex"; bh.style.alignItems="center";
+  bar.appendChild(bh);
+  bar.appendChild(el("div","cardnote","Reallocate the points you'd get back from resetting your current merits. Not real — a what-if."));
+  bar.appendChild(meterRow("Points used",
+    spent+" / "+budget+" <small style='color:"+(over?"var(--bad)":"var(--good)")+"'>"+rem+" left</small>",
+    Math.min(100,spent/budget*100), over?null:null));
+  const btns=el("div"); btns.style.marginTop="8px";
+  const bReset=el("button","goalsave","Reset to current"); bReset.onclick=()=>{keys.forEach(k=>SIM_LEVELS[k]=+m[k]||0);renderAwards();};
+  const bZero=el("button","goalsave","Clear all"); bZero.style.marginLeft="8px"; bZero.onclick=()=>{keys.forEach(k=>SIM_LEVELS[k]=0);renderAwards();};
+  btns.appendChild(bReset); btns.appendChild(bZero); bar.appendChild(btns);
+  p.appendChild(bar);
+
+  const list=el("div","card"); list.style.marginTop="16px";
+  keys.forEach(k=>{
+    const fx=meritFx(k); const cur=+m[k]||0, s=SIM_LEVELS[k]||0;
+    const sign=v=>(v>0?"+":"")+(Math.round(v*10)/10)+(fx.u||"");
+    const row=el("div","simrow");
+    let eff="";
+    if(fx.mast){
+      const md=v=>"+"+v+"% dmg · +"+(Math.round(v*0.2*10)/10)+" acc";
+      eff = s===cur ? "<span style='color:var(--muted)'>"+md(s)+"</span>"
+        : "<span style='color:var(--muted)'>"+md(cur)+"</span> → <b style='color:"+(s>cur?"var(--good)":"var(--warn)")+"'>"+md(s)+"</b>";
+    } else if(fx.per!=null){
+      eff = s===cur ? "<span style='color:var(--muted)'>"+sign(s*fx.per)+" "+fx.label+"</span>"
+        : "<span style='color:var(--muted)'>"+sign(cur*fx.per)+"</span> → <b style='color:"+(s>cur?"var(--good)":"var(--warn)")+"'>"+sign(s*fx.per)+" "+fx.label+"</b>";
+    }
+    row.innerHTML="<span class='sr-name'>"+icon(fx.icon,14)+escapeHtml(pretty(k))+"</span>";
+    const ctl=el("div","sr-ctl");
+    const minus=el("button",null,"−"); minus.onclick=()=>{SIM_LEVELS[k]=Math.max(0,s-1);renderAwards();};
+    const val=el("span","sr-val",s+"/10");
+    const plus=el("button",null,"+"); plus.onclick=()=>{SIM_LEVELS[k]=Math.min(10,s+1);renderAwards();};
+    ctl.appendChild(minus); ctl.appendChild(val); ctl.appendChild(plus);
+    row.appendChild(ctl);
+    const e=el("div","sr-eff"); e.innerHTML=eff; row.appendChild(e);
+    list.appendChild(row);
+  });
+  p.appendChild(list);
+  p.appendChild(el("div","infobox",
+    "Budget assumes the standard cost curve (maxing a merit = 55 points). If a merit "+
+    "uses a flat cost in-game the number may differ slightly — tell me and I'll adjust."));
+}
+
+// ---- Honors / Medals section (grouped by category) ----
+function renderAwardSection(p, type){
+  const all=awardItems().filter(i=>i.type===type);
+  if(!all.length){ p.appendChild(el("div","infobox",
+    "No "+type+" definitions returned. The <code>torn/"+type+"s</code> section needs a valid key.")); return; }
+
+  // account-wide overview band + chaser (combined honors + medals)
+  awardBand(p);
+
+  const cats=[...new Set(all.map(i=>i.cat))];
+  // filter + search (applies within the selected category)
+  const c=el("div","controls"); c.style.marginTop="16px";
+  const fseg=el("div","seg");
+  [["all","All"],["done","Earned"],["not","Not done"]].forEach(([v,l])=>{
+    const b=el("button",AW_AWFILTER===v?"on":null,l);
+    b.onclick=()=>{AW_AWFILTER=v;[...fseg.children].forEach(x=>x.classList.remove("on"));b.classList.add("on");updateAwardPane(type);};
+    fseg.appendChild(b);
+  });
+  const search=el("input","search"); search.placeholder="Search "+type+"s…"; search.value=AW_AWQUERY;
+  search.oninput=()=>{AW_AWQUERY=search.value;updateAwardPane(type);};
+  c.appendChild(fseg); c.appendChild(search);
+  const cnt=el("span","count"); cnt.id="aw-count"; c.appendChild(cnt);
+  p.appendChild(c);
+
+  // two-pane: category list (left, with mini rings) + awards of selected category (right)
+  const two=el("div","awtwo"); two.style.marginTop="12px";
+  const left=el("div","card awcats");
+  cats.sort().forEach(cat=>{
+    const list=all.filter(i=>i.cat===cat); const gd=list.filter(i=>i.done).length, gt=list.length;
+    const on=cat===AW_CAT, done=gd>=gt;
+    const row=el("div","awcat"+(on?" on":""));
+    row.innerHTML=awardRing(gt?gd/gt*100:0,26,done)+
+      "<span class='awcat-n'>"+escapeHtml(pretty(cat))+"</span>"+
+      "<span class='awcat-c'"+(done?" style='color:var(--warn)'":"")+">"+gd+" / "+gt+"</span>";
+    row.onclick=()=>{AW_CAT=cat;renderAwards();};
+    left.appendChild(row);
+  });
+  const right=el("div","card awpane"); right.id="aw-pane";
+  two.appendChild(left); two.appendChild(right);
+  p.appendChild(two);
+
+  if(AW_CAT==null || !cats.includes(AW_CAT)) AW_CAT=cats.sort()[0];
+  updateAwardPane(type);
+}
+function updateAwardPane(type){
+  const pane=$("#aw-pane"); if(!pane) return;
+  const all=awardItems().filter(i=>i.type===type && i.cat===AW_CAT);
+  let items=all.filter(i=>{
+    if(AW_AWFILTER==="done"&&!i.done) return false;
+    if(AW_AWFILTER==="not"&&i.done) return false;
+    if(AW_AWQUERY){const q=AW_AWQUERY.toLowerCase();
+      if(!(i.name.toLowerCase().includes(q)||i.desc.toLowerCase().includes(q))) return false;}
+    return true;
+  });
+  const gd=all.filter(i=>i.done).length, gt=all.length, done=gd>=gt;
+  const cnt=$("#aw-count"); if(cnt) cnt.textContent=items.length+" shown";
+  pane.innerHTML="";
+  // header: progress ring + % beside the category name and count, rarity breakdown on the right
+  const RORDER=["Very Common","Common","Uncommon","Rare","Very Rare","Limited","Extremely Rare"];
+  const rc={}; all.forEach(i=>{const r=i.rarity||"Other";(rc[r]=rc[r]||{d:0,t:0}).t++; if(i.done)rc[r].d++;});
+  const rbits=RORDER.filter(r=>rc[r]).map(r=>
+    "<span class='rbadge"+(rc[r].d>=rc[r].t?" full":"")+"'>"+escapeHtml(r)+" <b>"+rc[r].d+"/"+rc[r].t+"</b></span>").join("");
+  const head=el("div","awpane-head");
+  head.innerHTML=awardRing(gt?gd/gt*100:0,54,done)+
+    "<div class='aph-txt'><div class='aph-name'>"+escapeHtml(pretty(AW_CAT))+"</div>"+
+    "<div class='aph-sub'>"+gd+" / "+gt+" earned · "+pct1(gt?gd/gt*100:0)+"%"+
+    (done?" <span style='color:var(--warn)'>· complete</span>":"")+"</div></div>"+
+    (rbits?"<div class='aph-rar'>"+rbits+"</div>":"");
+  pane.appendChild(head);
+  const listWrap=el("div","awlist");
+  items.sort((a,b)=>(a.done-b.done)||a.name.localeCompare(b.name)).forEach(i=>{
+    const row=el("div","awrow"+(i.done?" edu-done":""));
+    row.appendChild(el("div","awmark "+(i.done?"done":"lock"), i.done?"\u2713":"\u25CB"));
+    const body=el("div","awbody");
+    body.innerHTML="<div class='awname'>"+escapeHtml(i.name)+
+      (i.rarity?"<span class='awtag'>"+escapeHtml(i.rarity)+"</span>":"")+
+      (i.circ!=null?"<span class='awtag'>"+fmt(i.circ)+" have this</span>":"")+"</div>"+
+      (i.desc?"<div class='awdesc'>"+escapeHtml(i.desc)+"</div>":"");
+    row.appendChild(body); listWrap.appendChild(row);
+  });
+  if(!items.length) listWrap.appendChild(el("div","cardnote","Nothing matches that filter/search."));
+  pane.appendChild(listWrap);
+}
+
+// ---- shell ----------------------------------------------------------------
+function escapeHtml(s){return String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
+function renderErrors(){
+  const box=$("#errors"); box.innerHTML="";
+  if(DATA&&DATA._error){box.appendChild(el("div","banner",DATA._error));return;}
+  const errs=(DATA&&DATA.errors)||{};
+  Object.entries(errs).forEach(([k,v])=>box.appendChild(el("div","banner","<b>"+pretty(k)+":</b> "+escapeHtml(v))));
+}
+function renderProfile(){
+  const p=(DATA&&DATA.profile)||{}; $("#pname").textContent=p.name||"—";
+  const meta=[]; if(p.level!=null)meta.push("Lv "+p.level);
+  if(p.player_id!=null)meta.push("ID "+p.player_id); if(p.rank)meta.push(p.rank);
+  $("#pmeta").textContent=meta.join(" · ")||"";
+}
+// decorate tab buttons with their icons + set the fixed subtitle
+(function(){
+  document.querySelectorAll("#tabs .tab").forEach(b=>{
+    const ic=b.getAttribute("data-icon");
+    if(ic && ICONS[ic]) b.innerHTML=icon(ic,15)+b.textContent;
+  });
+  const s=$("#brandsub"); if(s) s.textContent="Personal Intel Report";
+})();
+
+async function load(force){
+  const btn=$("#refreshBtn"); btn.disabled=true; btn.textContent="Loading…";
+  try{ DATA=await TornHub.fetchView("stats"); if(DATA&&DATA.error) DATA={_error:DATA.error}; }
+  catch(e){ DATA={_error:"Could not reach Torn: "+e.message+". Press Refresh to try again."}; }
+  renderErrors(); renderProfile();
+  renderOverview(); renderGrowth(); renderCrimes();
+  renderAwards(); renderEducation();
+  const t=DATA&&DATA.fetched_at?new Date(DATA.fetched_at*1000).toLocaleString():"—";
+  $("#foot").innerHTML="Data fetched "+t+(DATA&&DATA.cached?" (cached)":"")+
+    " · read live from Torn through your private data service.";
+  btn.disabled=false; btn.textContent="Refresh";
+}
+load(false);
+</script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Torn Hub</title>
+<title>Personal Profile</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap">
 <script src="config.js"></script>
@@ -304,48 +304,34 @@
   .pagehead .spacer{flex:1}
   .stamp{color:var(--faint);font-size:12px}
 
-  .hero{display:grid;grid-template-columns:1fr auto;gap:30px;align-items:end;margin:22px 0 38px}
-  .eyebrow{font:600 11.5px var(--sans);letter-spacing:2px;text-transform:uppercase;color:var(--accent2)}
-  .hero h1{font:600 clamp(32px,5.6vw,56px)/1.04 var(--display);margin:10px 0 12px;letter-spacing:-1px;text-wrap:balance}
-  .hero h1 span{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
-  .hero p{color:var(--muted);max-width:56ch;margin:0}
-  .phase{width:128px;height:128px;border-radius:50%;position:relative;overflow:hidden;background:radial-gradient(circle at 38% 34%,#f6f2ff,#c9c0ee 55%,#8f84c8);box-shadow:0 0 60px rgba(160,150,220,.35)}
-  .phase::after{content:"";position:absolute;inset:0;border-radius:50%;background:var(--bg);transform:translate(38%,-22%)}
-  @media(max-width:640px){.hero{grid-template-columns:1fr}.phase{display:none}}
-  .sechead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:14px}
-  .sechead h2{font:600 15px var(--display);margin:0;letter-spacing:.3px}
-  .sechead small{color:var(--faint);font-size:12.5px}
-  .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
-  .tile{position:relative;text-align:left;background:linear-gradient(180deg,var(--surface2),var(--surface));border:1px solid var(--border);border-radius:20px;padding:22px;color:var(--text);display:flex;flex-direction:column;gap:14px;min-height:210px;overflow:hidden;transition:transform .2s,border-color .2s,box-shadow .2s}
-  a.tile:hover{text-decoration:none;transform:translateY(-3px);border-color:var(--border2);box-shadow:0 14px 40px rgba(0,0,0,.35),0 0 24px rgba(179,168,224,.14)}
-  .tile::before{content:"";position:absolute;width:220px;height:220px;right:-90px;top:-110px;border-radius:50%;background:radial-gradient(circle,rgba(179,168,224,.16),transparent 70%);transition:.3s}
-  a.tile:hover::before{transform:scale(1.25)}
-  a.tile:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-  .tile h3{font:600 20px var(--display);margin:0}
-  .tile p{margin:4px 0 0;color:var(--muted);font-size:13.5px}
-  .tile .live{font:600 13px var(--sans);color:var(--accent);font-variant-numeric:tabular-nums;min-height:18px}
-  .tile .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto}
-  .chip{font-size:11.5px;color:var(--muted);border:1px solid var(--border);border-radius:999px;padding:3px 9px}
-  .tile .go{position:absolute;right:20px;top:24px;color:var(--faint);font-size:18px;transition:.2s}
-  a.tile:hover .go{color:var(--accent);transform:translateX(3px)}
-  .tile.soon{border-style:dashed;background:transparent}
-  .tile.soon .tic{opacity:.5}
-  .tile .tic{width:54px;height:54px;font-size:30px;border-radius:15px}
-  @media (prefers-reduced-motion:reduce){.tile,.tile::before{transition:none}}
+  .pf-grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));margin-top:14px}
+  .pf-hero{display:flex;align-items:center;gap:22px;flex-wrap:wrap;padding:20px}
+  .pf-av{width:96px;height:96px;border-radius:22px;object-fit:cover;border:1px solid var(--border2);background:var(--surface2);flex:0 0 auto}
+  .pf-av0{display:grid;place-items:center;font:600 38px var(--display);color:var(--accent)}
+  .pf-main{flex:1;min-width:220px}
+  .pf-main h2{font:600 30px var(--display);margin:0;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .pf-main h2 a{color:var(--text)}
+  .pf-main h2 small{font:500 15px var(--sans);color:var(--faint)}
+  .pf-meta{color:var(--muted);font-size:13.5px;margin-top:3px}
+  .pf-status{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
+  .spill{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;padding:4px 11px;border-radius:999px;border:1px solid var(--border2);color:var(--muted)}
+  .spill::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+  .spill.good{color:var(--good);border-color:rgba(135,201,166,.35);background:rgba(135,201,166,.08)}
+  .spill.bad{color:var(--bad);border-color:rgba(217,154,154,.35);background:rgba(217,154,154,.08)}
+  .spill.blue{color:var(--accent2);border-color:rgba(142,163,216,.35);background:rgba(142,163,216,.08)}
+  .pf-life{flex:0 1 260px;min-width:200px}
+  .pf-life .k{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:6px}
+  .pf-life .k b{color:var(--text);font-variant-numeric:tabular-nums}
+  .skel{height:150px;border-radius:16px;background:linear-gradient(90deg,var(--surface),var(--surface2),var(--surface));opacity:.6}
 </style>
 </head>
-<body data-section="home">
+<body data-section="profile">
 <div class="wrap">
-  <div class="hero">
-    <div>
-      <div class="eyebrow">Torn City · Personal Hub</div>
-      <h1>Welcome back, <span id="heroName">player</span></h1>
-      <p>Your profile, your stats and your wealth, all in one place. Pick a section to open it.</p>
-    </div>
-    <div class="phase" aria-hidden="true"></div>
-  </div>
-  <div class="sechead"><h2>Sections</h2><small id="secCount"></small></div>
-  <div class="tiles" id="tiles"></div>
+  <div class="pagehead"><div class="tic">🪪</div><div><h2>Personal Profile</h2><p>Who you are in Torn, at a glance</p></div>
+    <div class="spacer"></div><span class="stamp" id="stamp">loading…</span>
+    <button class="refresh" id="refreshBtn" onclick="load()">Refresh</button></div>
+  <div id="errors"></div>
+  <div id="profilePane"><div class="skel"></div></div>
 </div>
 <script>
 const $=s=>document.querySelector(s);
@@ -354,20 +340,75 @@ const fmt=n=>(n==null||isNaN(n))?"—":Number(n).toLocaleString();
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 function escapeHtml(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
 
-const S=TornHub.SECTIONS;
-$("#tiles").innerHTML=S.map(s=>'<a class="tile" href="'+s.href+'"><span class="go">→</span><div class="tic">'+s.icon+'</div>'+
-  '<div><h3>'+s.name+'</h3><div class="live" id="live-'+s.id+'"></div><p>'+s.blurb+'</p></div>'+
-  '<div class="chips">'+s.chips.map(c=>'<span class="chip">'+c+'</span>').join("")+'</div></a>').join("")+
-  '<div class="tile soon"><div class="tic">✨</div><div><h3>More coming</h3><p>New sections will appear here and in the top menu.</p></div></div>';
-$("#secCount").textContent=S.length+" sections";
-TornHub.fetchView("profile").then(d=>{
-  if(!d||d.error) return;
-  const p=d.profile||{}; if(p.name) $("#heroName").textContent=p.name;
-  const set=(id,t)=>{ const n=$("#live-"+id); if(n) n.textContent=t||""; };
-  set("profile",[p.level!=null?"Level "+p.level:"",p.rank||""].filter(Boolean).join(" · "));
-  const bs=d.battlestats||{}; set("stats",bs.total!=null?"Battle stats "+fmt(bs.total):"");
-  const nw=d.networth||{}; set("wealth",nw.total!=null?"Net worth $"+fmt(nw.total):"");
-}).catch(()=>{});
+const ICONS={
+  history:'<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>',
+  faction:'<path d="M5 21V5l7-2 7 2v16" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 21v-5h6v5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="9" r="1.5" fill="currentColor"/>',
+  property:'<path d="M4 11l8-6 8 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M6 10v9h12v-9" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
+};
+function cardH(title, ic){ const h=el("h3"); h.innerHTML='<svg viewBox="0 0 24 24" width="16" height="16" style="vertical-align:-2px;margin-right:7px;color:var(--accent)">'+(ICONS[ic]||"")+'</svg>'+title; return h; }
+function snapRow(k,v){ const r=el("div","snap"); r.appendChild(el("div","k",k)); const x=el("div","v"); x.innerHTML=v; r.appendChild(x); return r; }
+function tornLink(id,text){ return '<a href="https://www.torn.com/profiles.php?XID='+encodeURIComponent(id)+'" target="_blank" rel="noopener">'+escapeHtml(String(text))+'</a>'; }
+function relTime(ts){ const d=Math.max(0,Math.floor(ts-Date.now()/1000)); if(!d)return ""; const h=Math.floor(d/3600),m=Math.floor((d%3600)/60); return h?(h+"h "+m+"m"):(m+"m"); }
+let DATA=null;
+function render(){
+  const pane=$("#profilePane"); pane.innerHTML="";
+  const p=(DATA&&DATA.profile)||{};
+  if(!p.name){ pane.appendChild(el("div","card cardnote","Profile data is not available right now. Press Refresh to try again.")); return; }
+  const hero=el("div","card pf-hero");
+  let av; if(p.profile_image){ av=el("img","pf-av"); av.src=p.profile_image; av.alt=""; } else av=el("div","pf-av pf-av0",escapeHtml(String(p.name).charAt(0).toUpperCase()));
+  hero.appendChild(av);
+  const meta=[]; if(p.level!=null)meta.push("Level "+p.level); if(p.rank)meta.push(escapeHtml(p.rank)); if(p.role)meta.push(escapeHtml(p.role)); if(p.gender)meta.push(escapeHtml(p.gender));
+  const st=p.status||{}; const scls={green:"good",red:"bad",blue:"blue"}[st.color]||"";
+  let stHtml='<span class="spill '+scls+'">'+escapeHtml(st.description||st.state||"Unknown")+'</span>';
+  if(st.until&&st.until*1000>Date.now()) stHtml+='<span class="cardnote">ends in '+relTime(st.until)+'</span>';
+  if(st.details) stHtml+='<span class="cardnote">'+escapeHtml(String(st.details).replace(/<[^>]*>/g,""))+'</span>';
+  const la=p.last_action||{};
+  const main=el("div","pf-main");
+  main.innerHTML='<h2>'+tornLink(p.player_id,p.name)+'<small>['+escapeHtml(String(p.player_id))+']</small></h2><div class="pf-meta">'+meta.join(" · ")+'</div>'+
+    '<div class="pf-status">'+stHtml+(la.relative?'<span class="cardnote">Last action '+escapeHtml(la.relative)+'</span>':'')+'</div>';
+  hero.appendChild(main);
+  const life=p.life||((DATA.bars||{}).life)||{};
+  if(life.maximum){ const lf=el("div","pf-life"); lf.innerHTML='<div class="k"><span>Life</span><b>'+fmt(life.current)+' / '+fmt(life.maximum)+'</b></div>';
+    const bar=el("div","bar good"); const i=el("i"); i.style.width=clamp(life.current/life.maximum*100,0,100)+"%"; bar.appendChild(i); lf.appendChild(bar); hero.appendChild(lf); }
+  pane.appendChild(hero);
+  const grid=el("div","pf-grid");
+  const card=(t,ic,rows)=>{ const c=el("div","card"); c.appendChild(cardH(t,ic)); rows.filter(r=>r&&r[1]!=null&&r[1]!=="").forEach(([k,v])=>c.appendChild(snapRow(k,v))); return c; };
+  grid.appendChild(card("Account","history",[
+    ["Player ID",escapeHtml(String(p.player_id))],
+    ["Age",p.age!=null?fmt(p.age)+" days":null],
+    ["Signed up",p.signup?escapeHtml(String(p.signup).split(" ")[0]):null],
+    ["Donator",p.donator!=null?(+p.donator?'<span class="pill good">Yes</span>':"No"):null],
+    ["Revivable",p.revivable!=null?(+p.revivable?"Yes":"No"):null],
+    ["Last action",la.relative?escapeHtml(la.relative):null]]));
+  const m=p.married||{}, f=p.faction||{}, j=p.job||{};
+  grid.appendChild(card("Relationships","faction",[
+    ["Spouse",+m.spouse_id?tornLink(m.spouse_id,m.spouse_name||m.spouse_id):"Single"],
+    ["Days married",+m.spouse_id&&m.duration!=null?fmt(m.duration):null],
+    ["Faction",+f.faction_id?escapeHtml(String(f.faction_name||""))+(f.faction_tag?' <em>['+escapeHtml(String(f.faction_tag))+']</em>':""):"None"],
+    ["Faction position",+f.faction_id&&f.position?escapeHtml(String(f.position)):null],
+    ["Days in faction",+f.faction_id&&f.days_in_faction!=null?fmt(f.days_in_faction):null],
+    ["Job",j.company_name?escapeHtml(String(j.company_name)):(j.job?escapeHtml(String(j.job)):null)],
+    ["Job position",j.position?escapeHtml(String(j.position)):null]]));
+  const ownedCount=DATA.properties_owned!=null?(+DATA.properties_owned+1):null;   // +1 for the free Shack
+  grid.appendChild(card("Home and Social","property",[
+    ["Living in",p.property?escapeHtml(String(p.property)):null],
+    ["Properties owned",ownedCount!=null?fmt(ownedCount):null],
+    ["Karma",p.karma!=null?fmt(p.karma):null],
+    ["Awards",p.awards!=null?fmt(p.awards):null],
+    ["Friends",p.friends!=null?fmt(p.friends):null],
+    ["Enemies",p.enemies!=null?fmt(p.enemies):null],
+    ["Forum posts",p.forum_posts!=null?fmt(p.forum_posts):null]]));
+  pane.appendChild(grid);
+}
+async function load(){
+  const b=$("#refreshBtn"); b.disabled=true; b.textContent="Loading…"; $("#errors").innerHTML="";
+  try{ DATA=await TornHub.fetchView("profile"); if(DATA.error) throw new Error(DATA.error);
+    Object.entries(DATA.errors||{}).forEach(([k,v])=>$("#errors").appendChild(el("div","banner",escapeHtml(v))));
+    render(); $("#stamp").textContent="Updated "+new Date().toLocaleTimeString();
+  }catch(e){ $("#profilePane").innerHTML=""; $("#errors").appendChild(el("div","banner","Could not reach Torn: "+escapeHtml(e.message)+". Press Refresh to try again.")); $("#stamp").textContent="error"; }
+  finally{ b.disabled=false; b.textContent="Refresh"; }
+}
+load();
 </script>
 </body>
 </html>
