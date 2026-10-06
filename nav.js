@@ -2,7 +2,7 @@
  * To add a new section later: add one entry to SECTIONS and create its .html page. */
 (function () {
   var SECTIONS = [
-    { id: "profile", href: "profile.html", name: "Personal Profile", icon: "🪪",
+    { id: "profile", href: "profile.html", name: "Personal Profile", icon: "👤",
       blurb: "Identity, status, spouse, faction, job, property and social counts.",
       chips: ["Identity", "Status", "Relationships", "Social"] },
     { id: "stats", href: "stats.html", name: "Torn Stats", icon: "📊",
