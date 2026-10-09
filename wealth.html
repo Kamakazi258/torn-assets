@@ -370,6 +370,14 @@
 
   .pimg{width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center}
   .pimg img{width:100%;height:100%;object-fit:contain;border-radius:6px}
+  .pstyle{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 2px 12px;font-size:12px;color:var(--muted)}
+  .pstyle span{margin-right:4px;text-transform:uppercase;letter-spacing:.6px;font-size:11px}
+  .pstyle button{background:transparent;color:var(--muted);border:1px solid var(--edge2);border-radius:999px;padding:5px 12px;font-weight:600;font-size:12px;font-family:inherit;cursor:pointer}
+  .pstyle button:hover{color:var(--ink)}
+  .pstyle button.on{color:#1a1608;background:var(--gold);border-color:var(--gold)}
+  html.ptheme-classic .ptileimg .pimg{width:104px;height:68px}
+  html.ptheme-classic .pbig .ptile.big .ptileimg .pimg{width:150px;height:98px}
+  html.ptheme-classic .pimg img{border-radius:0}
   .pti{display:inline-flex}
   .picon{width:20px;height:20px;color:var(--moon);opacity:.9}
   .pcat.pi .picon{color:var(--gold)}
@@ -1257,12 +1265,33 @@ function propIcon(t){
   if(s.includes('shack')) return svg('<path d="M4 20V11l8-5 8 5v9z"/><path d="M10 20v-5h4v5"/>');
   return svg('<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/>');  // house default
 }
+// Property picture styles: add more here later (folder + file type)
+const PROP_THEMES={
+  icons:  {name:'3D Icons',     dir:'Property_Icons',  ext:'png'},
+  classic:{name:'Torn Classic', dir:'Property_Photos', ext:'webp'}
+};
+const PROP_THEME_KEY='tornhub_prop_theme';
+function propTheme(){ let t='icons'; try{ t=localStorage.getItem(PROP_THEME_KEY)||'icons'; }catch(e){} return PROP_THEMES[t]?t:'icons'; }
+function setPropTheme(t){
+  if(!PROP_THEMES[t]) return;
+  try{ localStorage.setItem(PROP_THEME_KEY,t); }catch(e){}
+  document.documentElement.classList.toggle('ptheme-classic', t==='classic');
+  document.querySelectorAll('.pstyle button').forEach(b=>b.classList.toggle('on', b.dataset.th===t));
+  renderPropGrid();
+}
+function propStyleBar(){
+  const cur=propTheme();
+  return '<div class="pstyle"><span>Property style</span>'+Object.keys(PROP_THEMES).map(k=>
+    `<button type="button" data-th="${k}" class="${k===cur?'on':''}" onclick="setPropTheme('${k}')">${PROP_THEMES[k].name}</button>`).join('')+'</div>';
+}
 function propImg(t){
   const file=(t||'').replace(/[^A-Za-z0-9 _-]/g,'').trim().replace(/\s+/g,'_');
   const safe=(t||'').replace(/"/g,'&quot;');
-  return `<span class="pimg" data-t="${safe}"><img src="Property_Icons/${file}.png" loading="lazy" onerror="propFail(this,'${file}')"></span>`;
+  const th=PROP_THEMES[propTheme()];
+  return `<span class="pimg" data-t="${safe}"><img src="${th.dir}/${file}.${th.ext}" loading="lazy" onerror="propFail(this,'${file}')"></span>`;
 }
 function propFail(img,file){
+  if(img.src.indexOf('Property_Photos/')>=0){ img.src='Property_Icons/'+file+'.png'; return; }  // photo missing: fall back to the icon
   if(!img.dataset.svg){ img.dataset.svg=1; img.src='Property_Icons/'+file+'.svg'; return; }
   const span=img.parentNode; const t=span?span.getAttribute('data-t'):''; if(span) span.innerHTML=propIcon(t||'');
 }
@@ -1410,7 +1439,8 @@ function renderProperty(d){
       <div class="growc"><div class="k">Maxed PI ROI (est.)</div><div class="v pos">${pct(roi)}</div></div>
       <div class="growc"><div class="k">Maxed PI value</div><div class="v">${money(cost)}</div></div>
     </div></div>`;
-  panel.innerHTML=head+`<div class="pgrid" id="propGrid"></div>`;
+  document.documentElement.classList.toggle('ptheme-classic', propTheme()==='classic');
+  panel.innerHTML=head+propStyleBar()+`<div class="pgrid" id="propGrid"></div>`;
   renderPropGrid();
 }
 function renderAll(rows, cash, bankRate, weeklyIncome, owned, bankCap, cityBank){
