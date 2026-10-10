@@ -10,7 +10,10 @@
       chips: ["Overview", "Growth", "Crimes", "Awards", "Education"] },
     { id: "wealth", href: "wealth.html", name: "Wealth Portfolio", icon: "💰",
       blurb: "Stocks, net worth, what to buy next, Cayman and property.",
-      chips: ["Portfolio", "Net Worth", "What to Buy Next", "Cayman", "Property", "Inventory"] }
+      chips: ["Portfolio", "Net Worth", "What to Buy Next", "Cayman", "Property", "Inventory"] },
+    { id: "targets", href: "targets.html", name: "Targets", icon: "🎯",
+      blurb: "Your hit list with live status, hospital timers, travel and inactive clean-up.",
+      chips: ["Live status", "Hospital timers", "Factions", "Too strong", "Inactive"] }
   ];
 
   var CSS = [
@@ -69,6 +72,18 @@
       return d;
     });
   }
+  /** Save data to the data service (POST). Shows the access-code box when needed and retries. */
+  function postView(view, data) {
+    var base = (window.TORN_ASSETS_CONFIG || {}).dataUrl || "";
+    if (!base || base.indexOf("script.google.com") < 0) return Promise.reject(new Error("the data service link is not set up yet"));
+    return fetch(base, { method: "POST", redirect: "follow", body: JSON.stringify({ code: getCode(), view: view, data: data }) })
+      .then(function (r) { if (!r.ok) throw new Error("the data service returned " + r.status); return r.json(); })
+      .then(function (d) {
+        if (d && d.locked) return askCode().then(function () { return postView(view, data); });
+        if (d && d.error) throw new Error(d.error);
+        return d;
+      });
+  }
   function askCode() {
     return new Promise(function (resolve) {
       var o = document.createElement("div"); o.className = "hubgate";
@@ -101,6 +116,6 @@
     bg.addEventListener("click", function () { var o = dr.classList.toggle("open"); bg.setAttribute("aria-expanded", o); });
   }
 
-  window.TornHub = { SECTIONS: SECTIONS, fetchView: fetchView, getCode: getCode, setCode: setCode, forgetCode: forgetCode };
+  window.TornHub = { SECTIONS: SECTIONS, fetchView: fetchView, postView: postView, getCode: getCode, setCode: setCode, forgetCode: forgetCode };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", build); else build();
 })();

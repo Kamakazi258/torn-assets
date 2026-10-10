@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Targets</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='12' r='12' fill='%230c0d17'/><path d='M15.7 3.2A9 9 0 1 0 21 14.3 7 7 0 0 1 15.7 3.2Z' fill='%23E9A57A'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap">
+<script src="config.js"></script>
+<script src="nav.js"></script>
+<style>
+  :root{
+    --bg:#0e0f18; --surface:#161724; --surface2:#1d1e2e; --border:rgba(184,180,214,.12); --border2:rgba(184,180,214,.22);
+    --text:#e9e7f2; --muted:#9a96b0; --faint:#6b6880;
+    --accent:#e9a57a; --good:#87c9a6; --idle:#e2c78c; --bad:#d99a9a; --blue:#8ea3d8;
+    --display:"Space Grotesk","Segoe UI",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box} html,body{margin:0;padding:0}
+  body{
+    background:
+      radial-gradient(1100px 600px at 78% -12%, rgba(233,165,122,.09), transparent 60%),
+      radial-gradient(900px 500px at 10% 110%, rgba(179,168,224,.08), transparent 60%),
+      var(--bg);
+    color:var(--text); font:14px/1.5 Inter,"Segoe UI",system-ui,sans-serif; min-height:100vh;
+  }
+  a{color:inherit}
+  .wrap{max-width:1180px;margin:0 auto;padding:22px 16px 60px}
+  header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .moon{width:32px;height:32px;flex:0 0 auto;filter:drop-shadow(0 0 12px rgba(233,165,122,.55))}
+  h1{font:700 22px var(--display);margin:0;letter-spacing:.2px}
+  .sub{color:var(--muted);font-size:12.5px}
+  .spacer{flex:1}
+  .ctrl{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .btn{background:var(--surface2);color:var(--text);border:1px solid var(--border2);border-radius:10px;padding:7px 14px;font:600 13px Inter,sans-serif;cursor:pointer}
+  .btn:hover{border-color:var(--accent)}
+  .btn.primary{background:var(--accent);color:#1f130a;border-color:var(--accent)}
+  .btn.ghost{background:transparent}
+  .btn.small{padding:4px 10px;font-size:12px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:16px}
+  .card h2{font:600 15px var(--display);margin:0 0 8px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  input[type=text],input[type=number],textarea{background:var(--bg);color:var(--text);border:1px solid var(--border2);border-radius:10px;padding:8px 12px;font:14px Inter,sans-serif}
+  textarea{width:100%;min-height:70px;resize:vertical}
+  .note{color:var(--muted);font-size:12.5px;margin:4px 0}
+  .note b{color:var(--text);font-weight:600}
+  .msg{font-size:13px;color:var(--good);min-height:18px}
+  .msg.bad{color:var(--bad)}
+  .tip{background:rgba(226,199,140,.08);border:1px solid rgba(226,199,140,.3);color:#ead9b3;border-radius:12px;padding:10px 14px;margin:10px 0 6px;font-size:12.5px}
+  .tip a{color:var(--accent)}
+  .err{background:rgba(217,154,154,.10);border:1px solid rgba(217,154,154,.35);color:#f0c4c4;border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:13px}
+  .err:empty{display:none}
+  .addgrid{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+  @media (max-width:760px){ .addgrid{grid-template-columns:1fr} }
+  .chk{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:13px;cursor:pointer;user-select:none}
+  .facs{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .fchip{display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border2);border-radius:999px;padding:3px 6px 3px 10px;font-size:12px;color:var(--muted)}
+  .fchip b{color:var(--text);font-weight:600}
+  .fchip button{background:none;border:0;color:var(--faint);cursor:pointer;font-size:14px;line-height:1}
+  .fchip button:hover{color:var(--bad)}
+  .summary{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+  .stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:8px 14px}
+  .stat .k{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+  .stat .v{font:700 18px var(--display)}
+  .filters{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-bottom:14px;color:var(--muted);font-size:13px}
+  .filters input[type=number]{width:70px;padding:5px 8px}
+  .sec{margin-bottom:18px}
+  .sech{display:flex;align-items:center;gap:8px;font:600 14px var(--display);margin:0 0 8px 2px;text-transform:uppercase;letter-spacing:.6px}
+  .sech .d{width:9px;height:9px;border-radius:50%}
+  .sech .n{color:var(--faint);font-weight:500}
+  .sech.toggle{cursor:pointer;user-select:none}
+  .sech .car{color:var(--faint);font-size:12px}
+  .d.online{background:var(--good)} .d.idle{background:var(--idle)} .d.offline{background:var(--faint)} .d.abroad{background:var(--blue)} .d.strong{background:var(--bad)}
+  .tw{overflow-x:auto;border:1px solid var(--border);border-radius:14px;background:var(--surface)}
+  table{width:100%;border-collapse:collapse;min-width:820px;table-layout:fixed}
+  th{font:600 11.5px Inter,sans-serif;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;text-align:left;padding:9px 12px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;white-space:nowrap;background:var(--surface2)}
+  th:hover{color:var(--text)}
+  th .ar{color:var(--accent);margin-left:4px}
+  th.num,td.num{text-align:right}
+  th.nos{cursor:default}
+  td{padding:8px 12px;border-bottom:1px solid var(--border);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  td.stc,td.nmc{white-space:normal}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:rgba(255,255,255,.02)}
+  .nm{font-weight:600;text-decoration:none}
+  .nm:hover{color:var(--accent)}
+  .nt{display:block;color:var(--faint);font-size:11.5px;line-height:1.3}
+  .st-ok{color:var(--good);font-weight:600}
+  .st-hosp{color:var(--bad);font-weight:600;font-variant-numeric:tabular-nums}
+  .st-jail{color:var(--idle);font-weight:600;font-variant-numeric:tabular-nums}
+  .st-fly,.st-abroad{color:var(--blue);font-weight:600}
+  .st-other{color:var(--muted)}
+  .dt{display:block;color:var(--muted);font-size:12px;line-height:1.35}
+  .dt.eta{color:var(--text);font-variant-numeric:tabular-nums}
+  .la-old{color:var(--idle)} .la-dead{color:var(--bad)}
+  .fresh{display:block;color:var(--faint);font-size:11px}
+  .ff1{color:#8ea3d8} .ff2{color:var(--good)} .ff3{color:var(--idle)} .ff4{color:var(--bad)}
+  .atk{display:inline-block;padding:4px 12px;border-radius:8px;font:600 12px Inter,sans-serif;text-decoration:none;border:1px solid var(--bad);color:#fff;background:rgba(217,154,154,.30)}
+  .atk:hover{background:rgba(217,154,154,.5)}
+  .atk.dim{opacity:.38;border-color:var(--border2);background:transparent;color:var(--muted)}
+  .atk.dim:hover{opacity:.7}
+  .rm{background:none;border:0;color:var(--faint);cursor:pointer;font-size:16px;padding:0 4px}
+  .rm:hover{color:var(--bad)}
+  .empty{color:var(--faint);padding:12px 14px;font-size:13px}
+  .na{color:var(--faint)}
+  .hidden{display:none !important}
+  .modal{position:fixed;inset:0;background:rgba(8,9,15,.8);display:grid;place-items:center;z-index:2000;padding:16px}
+  .modal .box{background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:18px;width:min(560px,100%);max-height:80vh;display:flex;flex-direction:column;gap:10px}
+  .modal .list{overflow:auto;border:1px solid var(--border);border-radius:10px;padding:6px 10px}
+  .modal label{display:flex;gap:8px;align-items:center;padding:4px 0;font-size:13px;color:var(--text)}
+  .modal label span{color:var(--muted)}
+  .foot{color:var(--faint);font-size:12px;margin-top:22px;text-align:center}
+  .foot a{color:var(--muted)}
+  @media (max-width:600px){ h1{font-size:19px} td,th{padding:8px 9px} }
+</style>
+</head>
+<body data-section="targets">
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <svg class="moon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15.5 2.5A9.5 9.5 0 1 0 21.5 15 7.5 7.5 0 0 1 15.5 2.5Z" fill="#E9A57A"/></svg>
+      <div><h1>Targets</h1><div class="sub">Your hit list, live status</div></div>
+    </div>
+    <div class="spacer"></div>
+    <div class="ctrl" id="ctrl">
+      <span class="note" id="cycle"></span>
+      <button class="btn" id="refreshBtn">Refresh now</button>
+      <button class="btn ghost" id="changeKey">Change key</button>
+    </div>
+  </header>
+
+  <div class="card hidden" id="keyCard">
+    <h2>Enter your Torn API key</h2>
+    <div class="note">Live status comes straight from Torn with this key. It is saved only in this browser, and sent only to Torn and to FF Scouter for the FF and estimated stats.</div>
+    <div class="row" style="margin:10px 0">
+      <input type="text" id="keyInput" name="torn-api-key" placeholder="Your Torn API key" autocomplete="off" autocapitalize="off" spellcheck="false" style="flex:1;min-width:200px;-webkit-text-security:disc">
+      <button class="btn primary" id="saveKey">Save key</button>
+    </div>
+    <div class="tip"><b>Want FF and Est. stats?</b> Your key must be registered with FF Scouter: go to <a href="https://ffscouter.com" target="_blank" rel="noopener">ffscouter.com</a> and submit your Torn API key there, then press Refresh now.</div>
+  </div>
+
+  <div class="card" id="addCard">
+    <div class="addgrid">
+      <div>
+        <h2>Add players</h2>
+        <textarea id="addText" placeholder="Paste one or many player IDs or profile links, for example 3972789 or https://www.torn.com/profiles.php?XID=3972789"></textarea>
+        <div class="row" style="margin-top:8px">
+          <input type="text" id="addNote" placeholder="Note (optional)" style="flex:1;min-width:160px">
+          <button class="btn primary" id="addBtn">Add</button>
+        </div>
+      </div>
+      <div>
+        <h2>Add a whole faction</h2>
+        <div class="row">
+          <input type="text" id="facInput" placeholder="Faction ID or link" style="flex:1;min-width:140px">
+          <button class="btn primary" id="facBtn">Add faction</button>
+        </div>
+        <label class="chk" style="margin-top:8px"><input type="checkbox" id="facFollow" checked>Also add new members who join later</label>
+        <div class="facs" id="facList"></div>
+        <h2 style="margin-top:14px">Import from Torn</h2>
+        <div class="row"><button class="btn" id="tornListBtn">Import my Torn Enemies and Targets lists</button></div>
+        <div class="note">Needs a Limited Access key.</div>
+      </div>
+    </div>
+    <div class="msg" id="addMsg"></div>
+  </div>
+
+  <div class="err" id="err"></div>
+
+  <div class="summary" id="summary"></div>
+
+  <div class="filters">
+    <label class="chk"><input type="checkbox" id="fOkay">Okay only</label>
+    <label class="chk"><input type="checkbox" id="fHideInactive">Hide inactive</label>
+    <span>Inactive after <input type="number" id="fDays" min="1" max="3650" value="30"> days</span>
+    <button class="btn small" id="clearBtn">Clear inactive...</button>
+    <span class="spacer"></span>
+    <input type="text" id="fSearch" placeholder="Search name, ID or note" style="min-width:200px;padding:5px 10px">
+  </div>
+
+  <div id="panel"></div>
+
+  <div class="foot">
+    Your list is saved in your TornHub data service, so it is the same on every device. Hospital timers count down every second; other details refresh in turns.<br>
+    ETA is an estimate from the plane type and Torn's flight times. FF and estimated battle stats come from <a href="https://ffscouter.com" target="_blank" rel="noopener">FF Scouter</a> and are estimates.
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ---------------------------------------------------------------- settings
+  var API = 'https://api.torn.com/v2';
+  var FF_API = 'https://ffscouter.com/api/v1/get-stats';
+  var PER_MIN = 60;            // Torn requests per minute this page may use (Torn allows about 100 per key)
+  var FACTION_EVERY = 60;      // seconds between refreshes of each followed faction
+  var FF_EVERY = 600;          // seconds between FF Scouter refreshes
+  var MYSTATS_EVERY = 3600;    // seconds between refreshes of your own battle stats
+  var SAVE_DELAY = 1500;       // ms to wait before saving list changes
+
+  // One-way flight minutes from the Torn wiki: [Standard, Airstrip, Private (WLT), Business]
+  var COUNTRIES = [
+    { name: 'Mexico', keys: ['mexic'], t: [24, 17, 12, 7] },
+    { name: 'Cayman Islands', keys: ['cayman'], t: [33, 23, 17, 10] },
+    { name: 'Canada', keys: ['canad'], t: [39, 27, 19, 12] },
+    { name: 'Hawaii', keys: ['hawai'], t: [127, 89, 63, 38] },
+    { name: 'United Kingdom', keys: ['united kingdom', 'british', 'london'], t: [151, 106, 75, 45] },
+    { name: 'Argentina', keys: ['argentin'], t: [158, 111, 79, 47] },
+    { name: 'Switzerland', keys: ['switzerland', 'swiss'], t: [166, 116, 83, 50] },
+    { name: 'Japan', keys: ['japan'], t: [213, 149, 107, 64] },
+    { name: 'China', keys: ['china', 'chinese'], t: [229, 160, 114, 69] },
+    { name: 'UAE', keys: ['uae', 'emirat', 'arab', 'dubai'], t: [257, 180, 128, 77] },
+    { name: 'South Africa', keys: ['south africa'], t: [282, 197, 141, 85] }
+  ];
+  var LOW = 0.75 * 0.97, HIGH = 1.03;
+  var PLANE = { light_aircraft: 'Airstrip', private_jet: 'Private jet', airliner: 'Airliner' };
+
+  // ---------------------------------------------------------------- helpers
+  function $(id) { return document.getElementById(id); }
+  function load(k, d) { try { var s = localStorage.getItem(k); return s ? JSON.parse(s) : d; } catch (e) { return d; } }
+  function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  function now() { return Math.floor(Date.now() / 1000); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function fmtNum(n) { return Number(n).toLocaleString('en-US'); }
+  function clock(s) {
+    s = Math.max(0, Math.floor(s));
+    var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60;
+    return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(x).padStart(2, '0');
+  }
+  function mins(s) { var m = Math.max(0, Math.ceil(s / 60)); return m < 60 ? m + '' : Math.floor(m / 60) + 'h ' + String(m % 60).padStart(2, '0') + 'm'; }
+  function dur(s) { var m = Math.max(0, Math.ceil(s / 60)); return m < 60 ? m + ' min' : mins(s); }
+  function ago(s) {
+    s = Math.max(0, s);
+    if (s < 60) return 'just now';
+    if (s < 3600) return Math.floor(s / 60) + ' min ago';
+    if (s < 86400) return Math.floor(s / 3600) + ' h ago';
+    var d = Math.floor(s / 86400);
+    return d + (d === 1 ? ' day ago' : ' days ago');
+  }
+  function short(n) {
+    n = Number(n);
+    if (n >= 1e9) return (n / 1e9).toFixed(n >= 1e10 ? 1 : 2) + 'b';
+    if (n >= 1e6) return (n / 1e6).toFixed(n >= 1e7 ? 1 : 2) + 'm';
+    if (n >= 1e3) return (n / 1e3).toFixed(0) + 'k';
+    return String(n);
+  }
+  function countryOf(text) {
+    var t = String(text || '').toLowerCase();
+    for (var i = 0; i < COUNTRIES.length; i++) for (var j = 0; j < COUNTRIES[i].keys.length; j++) if (t.indexOf(COUNTRIES[i].keys[j]) >= 0) return COUNTRIES[i];
+    return null;
+  }
+  function getJson(u, opts) {
+    return fetch(u, opts || { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) {
+      if (d && d.error) { var e = new Error(d.error.error || d.error || 'API error'); e.code = d.error.code != null ? d.error.code : d.code; throw e; }
+      return d;
+    });
+  }
+  function api(path) { return getJson(API + path + (path.indexOf('?') >= 0 ? '&' : '?') + 'key=' + encodeURIComponent(S.key)); }
+
+  // ---------------------------------------------------------------- state
+  var S = {
+    key: load('torn_key', '') || load('kw_key', '') || '',
+    list: { players: [], factions: [] },   // saved list (synced)
+    data: load('tg_data', {}) || {},          // last seen details per player id
+    ff: load('tg_ff', {}) || {}, ffAt: 0, ffState: 'none',
+    myTotal: null,
+    obs: load('tg_obs', {}) || {},            // take-off windows seen by this page
+    facAt: {}, queue: [], loaded: false
+  };
+  var prefs = load('tg_prefs', { okay: false, hideInactive: false, days: 30, sort: {}, strongOpen: false });
+
+  // ---------------------------------------------------------------- list storage (TornHub data service, with a browser copy as backup)
+  var Store = {
+    remote: function () { return window.TornHub && typeof window.TornHub.fetchView === 'function' && (window.TORN_ASSETS_CONFIG || {}).dataUrl; },
+    load: function () {
+      var local = load('tg_list', null);
+      if (!Store.remote()) return Promise.resolve(local || S.list);
+      return window.TornHub.fetchView('targets').then(function (d) {
+        if (d && d.targets) { save('tg_list', d.targets); return d.targets; }
+        return local || S.list;
+      }).catch(function () { return local || S.list; });
+    },
+    timer: 0,
+    save: function () {
+      save('tg_list', S.list);
+      clearTimeout(Store.timer);
+      Store.timer = setTimeout(function () {
+        if (!Store.remote() || !window.TornHub.postView) return;
+        window.TornHub.postView('targets', S.list).catch(function (e) { showErr('Could not save your list to the data service: ' + e.message + '. It is kept in this browser for now.'); });
+      }, SAVE_DELAY);
+    }
+  };
+
+  function showErr(t) { $('err').textContent = t || ''; }
+  function msg(t, bad) { var m = $('addMsg'); m.textContent = t; m.className = 'msg' + (bad ? ' bad' : ''); }
+
+  // ---------------------------------------------------------------- adding and removing
+  function parseIds(text) {
+    var ids = [], seen = {}, m;
+    var re = /(?:XID=|user2ID=|profiles\.php\?XID=)(\d{1,9})|\b(\d{1,9})\b/gi;
+    while ((m = re.exec(String(text || '')))) { var id = m[1] || m[2]; if (id && !seen[id]) { seen[id] = 1; ids.push(Number(id)); } }
+    return ids;
+  }
+  function hasPlayer(id) { return S.list.players.some(function (p) { return p.id === id; }); }
+  function addPlayers(ids, note, fac) {
+    var added = 0;
+    ids.forEach(function (id) {
+      if (hasPlayer(id)) return;
+      S.list.players.push({ id: id, note: note || '', added: now(), fac: fac || 0 });
+      S.queue.unshift(id); added++;
+    });
+    if (added) { Store.save(); render(); }
+    return added;
+  }
+  function removePlayers(ids) {
+    var set = {}; ids.forEach(function (i) { set[i] = 1; });
+    S.list.players = S.list.players.filter(function (p) { return !set[p.id]; });
+    Store.save(); render();
+  }
+  $('addBtn').addEventListener('click', function () {
+    var ids = parseIds($('addText').value);
+    if (!ids.length) { msg('No player IDs found. Paste IDs or profile links.', true); return; }
+    var n = addPlayers(ids, $('addNote').value.trim());
+    msg(n ? 'Added ' + n + ' player' + (n === 1 ? '' : 's') + (ids.length - n ? ' (' + (ids.length - n) + ' already on your list)' : '') + '.' : 'All of those are already on your list.', !n);
+    if (n) { $('addText').value = ''; $('addNote').value = ''; }
+  });
+  $('facBtn').addEventListener('click', function () {
+    var m = String($('facInput').value).match(/(?:ID=)?(\d{1,7})/i);
+    if (!m) { msg('Enter a faction ID or faction link.', true); return; }
+    var fid = Number(m[1]), follow = $('facFollow').checked;
+    if (!S.key) { msg('Save your Torn API key first.', true); return; }
+    msg('Loading faction ' + fid + '...');
+    api('/faction/' + fid + '/members').then(function (d) {
+      var mem = membersOf(d);
+      return api('/faction/' + fid + '/basic').catch(function () { return null; }).then(function (b) {
+        var name = (b && b.basic && b.basic.name) || ('Faction ' + fid);
+        mem.forEach(function (x) { storeDetail(x, now()); });
+        var n = addPlayers(mem.map(function (x) { return x.id; }), name, fid);
+        if (!S.list.factions.some(function (f) { return f.id === fid; })) S.list.factions.push({ id: fid, name: name, follow: follow });
+        else S.list.factions.forEach(function (f) { if (f.id === fid) f.follow = follow; });
+        S.facAt[fid] = now(); Store.save(); save('tg_data', S.data);
+        msg('Added ' + n + ' member' + (n === 1 ? '' : 's') + ' of ' + name + '.' + (follow ? ' New members will be added automatically.' : ''));
+        $('facInput').value = ''; render();
+      });
+    }).catch(function (e) { msg('Could not load that faction: ' + e.message, true); });
+  });
+  // your in-game Enemies and Targets lists
+  function firstArray(d) { if (!d) return []; for (var k in d) if (Array.isArray(d[k])) return d[k]; return []; }
+  function importTornList(cat) {
+    var all = [];
+    function page(offset) {
+      return api('/user/list?cat=' + cat + '&limit=50&offset=' + offset).then(function (d) {
+        var l = firstArray(d); all = all.concat(l);
+        return l.length >= 50 && offset < 5000 ? page(offset + 50) : all;
+      });
+    }
+    return page(0);
+  }
+  $('tornListBtn').addEventListener('click', function () {
+    if (!S.key) { msg('Save your Torn API key first.', true); return; }
+    msg('Loading your Torn Enemies and Targets lists...');
+    Promise.all([importTornList('Enemies'), importTornList('Targets')]).then(function (r) {
+      var t = now(), n = 0;
+      [['Torn Enemies', r[0]], ['Torn Targets', r[1]]].forEach(function (x) {
+        x[1].forEach(function (p) { if (p && p.id && p.status) storeDetail(p, t); });
+        n += addPlayers(x[1].map(function (p) { return Number(p.id); }).filter(Boolean), x[0]);
+      });
+      save('tg_data', S.data);
+      msg('Found ' + r[0].length + ' enemies and ' + r[1].length + ' targets in Torn. Added ' + n + ' new player' + (n === 1 ? '' : 's') + '.');
+    }).catch(function (e) {
+      msg((e.code === 16 || e.code === 7) ? 'This key cannot read your Torn lists. Use a Limited Access key (Change key above).' : 'Could not load your Torn lists: ' + e.message, true);
+    });
+  });
+  $('changeKey').addEventListener('click', function () { $('keyCard').classList.remove('hidden'); $('keyInput').focus(); });
+  function unfollow(fid) {
+    S.list.factions = S.list.factions.filter(function (f) { return f.id !== fid; });
+    Store.save(); render();
+  }
+
+  // ---------------------------------------------------------------- live data
+  function membersOf(d) {
+    var m = d && d.members; if (!m) return [];
+    return Array.isArray(m) ? m : Object.keys(m).map(function (k) { var x = m[k]; x.id = x.id || Number(k); return x; });
+  }
+  function storeDetail(x, t) {
+    var old = S.data[x.id] || {};
+    observe(x, old);
+    S.data[x.id] = { name: x.name, level: x.level, status: x.status, last: x.last_action, fac: x.faction_id != null ? x.faction_id : old.fac, t: t };
+  }
+  // take-off windows seen by this page, for the ETA estimate
+  function observe(x, old) {
+    var st = x.status || {}, id = String(x.id), n = now();
+    if (st.state === 'Traveling') {
+      var o = S.obs[id];
+      if (o && o.d === st.description) return;
+      var wasHere = old && old.status && old.status.state !== 'Traveling' && old.t && n - old.t <= 300;
+      S.obs[id] = { d: st.description, p: st.plane_image_type || '', a: wasHere ? old.t : null, b: n };
+    } else delete S.obs[id];
+  }
+  function followedIds() {
+    var f = {}; S.list.factions.forEach(function (x) { f[x.id] = 1; });
+    var out = {}; S.list.players.forEach(function (p) { if (p.fac && f[p.fac]) out[p.id] = 1; });
+    return out;
+  }
+  // next individual player to refresh: never loaded first, then hospital ending soon, then oldest
+  function nextPlayer() {
+    var viaFac = followedIds(), n = now(), best = null, bestScore = -Infinity;
+    while (S.queue.length) { var q = S.queue.shift(); if (hasPlayer(q) && !viaFac[q]) return q; }
+    S.list.players.forEach(function (p) {
+      if (viaFac[p.id]) return;
+      var d = S.data[p.id];
+      var score = !d ? 1e9 : (n - d.t);
+      if (d && d.status && (d.status.state === 'Hospital' || d.status.state === 'Jail') && d.status.until) {
+        var left = d.status.until - n;
+        if (left > -30 && left < 180) score += 5000;
+      }
+      if (score > bestScore) { bestScore = score; best = p.id; }
+    });
+    return best;
+  }
+  var budget = 0;
+  function pump() {
+    if (!S.key) return;
+    budget = Math.min(budget + PER_MIN / 60, 3);
+    // followed factions: one request refreshes every member
+    var n = now();
+    for (var i = 0; i < S.list.factions.length && budget >= 1; i++) {
+      var f = S.list.factions[i];
+      if ((S.facAt[f.id] || 0) + FACTION_EVERY > n) continue;
+      budget -= 1; S.facAt[f.id] = n;
+      (function (f) {
+        api('/faction/' + f.id + '/members').then(function (d) {
+          var mem = membersOf(d), t = now();
+          mem.forEach(function (x) { storeDetail(x, t); });
+          if (f.follow) {
+            var fresh = mem.filter(function (x) { return !hasPlayer(x.id); }).map(function (x) { return x.id; });
+            if (fresh.length) addPlayers(fresh, f.name, f.id);
+          }
+          dirty = true;
+        }).catch(function (e) { noteApiError(e); });
+      })(f);
+    }
+    if (budget < 1) return;
+    var id = nextPlayer(); if (!id) return;
+    budget -= 1;
+    api('/user/' + id + '/profile').then(function (d) {
+      var p = d && d.profile; if (!p) return;
+      storeDetail(p, now()); dirty = true;
+    }).catch(function (e) {
+      if (e.code === 6) { S.data[id] = Object.assign({}, S.data[id] || {}, { t: now(), missing: true }); dirty = true; }
+      else noteApiError(e);
+    });
+  }
+  function noteApiError(e) {
+    if (e.code === 2) showErr('Torn says this API key is incorrect. Press Change key and enter it again.');
+    else if (e.code === 5) { showErr('Torn says too many requests. Slowing down for a minute.'); budget = -60; }
+  }
+
+  // FF Scouter estimates, every 10 minutes, 200 players per request
+  function loadFF() {
+    var ids = S.list.players.map(function (p) { return p.id; });
+    if (!S.key || !ids.length) return;
+    var b = []; for (var i = 0; i < ids.length; i += 200) b.push(ids.slice(i, i + 200));
+    Promise.all(b.map(function (x) { return fetch(FF_API + '?key=' + encodeURIComponent(S.key) + '&targets=' + x.join(','), { cache: 'no-store' }).then(function (r) { return r.json(); }); }))
+      .then(function (res) {
+        var map = {};
+        res.forEach(function (d) {
+          if (d && d.error) throw new Error(d.error);
+          (Array.isArray(d) ? d : []).forEach(function (x) { if (x && x.player_id != null) map[x.player_id] = x; });
+        });
+        S.ff = map; S.ffState = 'ok'; save('tg_ff', map); dirty = true;
+      }).catch(function (e) { S.ffState = 'error'; S.ffMsg = e.message; dirty = true; });
+    S.ffAt = now();
+  }
+  // your own battle stats total, from your Torn Stats data
+  function loadMyStats() {
+    var c = load('tg_my', null);
+    if (c && now() - c.t < MYSTATS_EVERY) { S.myTotal = c.v; return; }
+    if (!window.TornHub || !window.TornHub.fetchView) return;
+    window.TornHub.fetchView('stats').then(function (d) {
+      var v = d && d.battlestats && d.battlestats.total;
+      if (v) { S.myTotal = v; save('tg_my', { v: v, t: now() }); dirty = true; }
+    }).catch(function () {});
+  }
+
+  // ---------------------------------------------------------------- travel and status
+  function parseTravel(desc) {
+    var d = String(desc || ''), m;
+    if ((m = d.match(/returning to torn from (.+)$/i))) return { from: countryOf(m[1]), to: null, fromTorn: false };
+    if ((m = d.match(/from (.+?) to (.+)$/i))) {
+      var toTorn = /^torn/i.test(m[2].trim());
+      return toTorn ? { from: countryOf(m[1]), to: null, fromTorn: false } : { from: null, to: countryOf(m[2]), fromTorn: true };
+    }
+    if ((m = d.match(/to (.+)$/i))) return { from: null, to: countryOf(m[1]), fromTorn: true };
+    return { from: null, to: null, fromTorn: true };
+  }
+  function routeText(t) { return (t.fromTorn ? 'Torn' : (t.from ? t.from.name : '?')) + ' → ' + (t.fromTorn ? (t.to ? t.to.name : '?') : 'Torn'); }
+  function etaText(id, st) {
+    var t = parseTravel(st.description), c = t.fromTorn ? t.to : t.from, o = S.obs[id];
+    if (!c || !o || o.d !== st.description || o.a == null) return 'ETA unknown (already flying)';
+    var p = st.plane_image_type || o.p, n = now(), lo, hi;
+    if (p === 'light_aircraft') { lo = c.t[1] * LOW; hi = c.t[1] * HIGH; }
+    else if (p === 'private_jet') { lo = c.t[2] * LOW; hi = c.t[2] * HIGH; }
+    else { lo = c.t[3] * LOW; hi = c.t[0] * HIGH; if (n > o.b + c.t[3] * HIGH * 60) lo = c.t[0] * LOW; }
+    var a = o.a + lo * 60 - n, b = o.b + hi * 60 - n;
+    if (b <= 0) return 'Landing any moment';
+    if (a <= 0) return 'Any moment, up to ' + dur(b);
+    return b < 3600 ? 'Landing in ' + mins(a) + '-' + mins(b) + ' min' : 'Landing in ' + dur(a) + ' to ' + dur(b);
+  }
+  function statusInfo(d) {
+    var st = (d && d.status) || {}, n = now(), left = st.until ? st.until - n : 0;
+    switch (st.state) {
+      case 'Okay': return { text: 'Okay', cls: 'st-ok', ok: true, rank: 0, left: 0 };
+      case 'Hospital': return left <= 0 ? { text: 'Okay', cls: 'st-ok', ok: true, rank: 0, left: 0 } : { text: 'Hospital ' + clock(left), cls: 'st-hosp', ok: false, rank: 1, left: left };
+      case 'Jail': return left <= 0 ? { text: 'Okay', cls: 'st-ok', ok: true, rank: 0, left: 0 } : { text: 'Jail ' + clock(left), cls: 'st-jail', ok: false, rank: 1, left: left };
+      case 'Traveling': return { text: 'Flying', cls: 'st-fly', ok: false, rank: 2, left: 0 };
+      case 'Abroad': return { text: 'Abroad', cls: 'st-abroad', ok: false, rank: 3, left: 0 };
+      case 'Federal': return { text: 'Federal jail', cls: 'st-other', ok: false, rank: 4, left: 0 };
+      default: return { text: st.state || 'Loading...', cls: 'st-other', ok: false, rank: 5, left: 0 };
+    }
+  }
+  function detail(id, d) {
+    var st = (d && d.status) || {};
+    if (st.state === 'Traveling') {
+      var p = PLANE[st.plane_image_type] || '';
+      return '<span class="dt">' + esc(routeText(parseTravel(st.description))) + (p ? ' · ' + p : '') + '</span><span class="dt eta">' + esc(etaText(id, st)) + '</span>';
+    }
+    if (st.state === 'Abroad' || (st.state === 'Hospital' && countryOf(st.description))) { var c = countryOf(st.description); return '<span class="dt">In ' + esc(c ? c.name : st.description) + '</span>'; }
+    return '';
+  }
+  function section(d) {
+    var st = (d && d.status) || {};
+    if (st.state === 'Traveling' || st.state === 'Abroad' || (st.state === 'Hospital' && countryOf(st.description))) return 'abroad';
+    var a = d && d.last && d.last.status;
+    return a === 'Online' ? 'online' : a === 'Idle' ? 'idle' : 'offline';
+  }
+  function lastSecs(d) { return d && d.last && d.last.timestamp ? now() - d.last.timestamp : null; }
+  function tooStrong(id) { var f = S.ff[id]; return S.myTotal && f && f.bs_estimate != null && Number(f.bs_estimate) > S.myTotal; }
+
+  // ---------------------------------------------------------------- render
+  var COLS = [
+    { k: 'name', t: 'Member', w: '20%' }, { k: 'level', t: 'Level', num: 1, w: '7%' }, { k: 'ff', t: 'FF', num: 1, w: '7%' },
+    { k: 'bs', t: 'Est. stats', num: 1, w: '10%' }, { k: 'last', t: 'Last active', w: '13%' },
+    { k: 'status', t: 'Status', w: '26%' }, { k: 'attack', t: 'Attack', w: '11%' }, { k: 'rm', t: '', w: '6%', nos: 1 }
+  ];
+  var SECTIONS = [['online', 'Online'], ['idle', 'Idle'], ['offline', 'Offline'], ['abroad', 'Abroad']];
+  function sortVal(p, k) {
+    var d = S.data[p.id] || {}, f = S.ff[p.id];
+    switch (k) {
+      case 'name': return String(d.name || p.id).toLowerCase();
+      case 'level': return d.level || 0;
+      case 'ff': return f && f.fair_fight != null ? Number(f.fair_fight) : -1;
+      case 'bs': return f && f.bs_estimate != null ? Number(f.bs_estimate) : -1;
+      case 'last': var s = lastSecs(d); return s == null ? 1e12 : s;
+      case 'status': var i = statusInfo(d); return i.rank * 1e7 + i.left;
+      case 'attack': return statusInfo(d).ok ? 1 : 0;
+    }
+    return 0;
+  }
+  function sorted(list, sec) {
+    var s = prefs.sort[sec] || { k: 'status', d: 1 };
+    return list.slice().sort(function (a, b) {
+      var x = sortVal(a, s.k), y = sortVal(b, s.k), r = x < y ? -1 : x > y ? 1 : 0;
+      return r === 0 ? (a.id - b.id) : r * s.d;
+    });
+  }
+  function lastCell(d) {
+    var s = lastSecs(d); if (s == null) return '<span class="na">-</span>';
+    var lim = prefs.days * 86400, cls = s > 2 * lim ? 'la-dead' : s > lim ? 'la-old' : '';
+    return '<span class="' + cls + '">' + ago(s) + '</span>';
+  }
+  function ffCell(id) {
+    var x = S.ff[id]; if (!x || x.fair_fight == null) return '<span class="na">-</span>';
+    var f = Number(x.fair_fight), c = f < 2 ? 'ff1' : f < 3.5 ? 'ff2' : f < 4.5 ? 'ff3' : 'ff4';
+    return '<span class="' + c + '">' + f.toFixed(2) + '</span>';
+  }
+  function bsCell(id) { var x = S.ff[id]; return x && x.bs_estimate != null ? esc(x.bs_estimate_human || short(x.bs_estimate)) : '<span class="na">-</span>'; }
+  function row(p) {
+    var d = S.data[p.id], i = statusInfo(d), name = (d && d.name) || ('Player ' + p.id);
+    return '<tr data-id="' + p.id + '">' +
+      '<td class="nmc"><a class="nm" href="https://www.torn.com/profiles.php?XID=' + p.id + '" target="_blank" rel="noopener">' + esc(name) + '</a>' +
+        '<span class="nt">' + esc(p.id) + (p.note ? ' · ' + esc(p.note) : '') + '</span></td>' +
+      '<td class="num">' + ((d && d.level) || '') + '</td>' +
+      '<td class="num">' + ffCell(p.id) + '</td>' +
+      '<td class="num">' + bsCell(p.id) + '</td>' +
+      '<td class="lac">' + lastCell(d) + '</td>' +
+      '<td class="stc"><span class="st ' + i.cls + '">' + esc(i.text) + '</span>' + detail(p.id, d) + '<span class="fresh">' + (d && d.t ? 'checked ' + ago(now() - d.t) : 'waiting for first check') + '</span></td>' +
+      '<td><a class="atk' + (i.ok ? '' : ' dim') + '" href="https://www.torn.com/loader.php?sid=attack&amp;user2ID=' + p.id + '" target="_blank" rel="noopener">Attack</a></td>' +
+      '<td><button class="rm" title="Remove from list" data-rm="' + p.id + '">×</button></td></tr>';
+  }
+  function table(list, sec) {
+    var s = prefs.sort[sec] || { k: 'status', d: 1 };
+    var h = '<div class="tw"><table data-sec="' + sec + '"><colgroup>';
+    COLS.forEach(function (c) { h += '<col style="width:' + c.w + '">'; });
+    h += '</colgroup><thead><tr>';
+    COLS.forEach(function (c) {
+      h += '<th' + (c.nos ? ' class="nos"' : ' data-k="' + c.k + '"' + (c.num ? ' class="num"' : '')) + '>' + c.t +
+        (s.k === c.k ? '<span class="ar">' + (s.d < 0 ? '▼' : '▲') + '</span>' : '') + '</th>';
+    });
+    h += '</tr></thead><tbody>';
+    if (!list.length) h += '<tr><td class="empty" colspan="' + COLS.length + '">No players</td></tr>';
+    else sorted(list, sec).forEach(function (p) { h += row(p); });
+    return h + '</tbody></table></div>';
+  }
+  function visible(p) {
+    var d = S.data[p.id];
+    if (prefs.okay && !statusInfo(d).ok) return false;
+    if (prefs.hideInactive) { var s = lastSecs(d); if (s != null && s > prefs.days * 86400) return false; }
+    var q = ($('fSearch').value || '').trim().toLowerCase();
+    if (q && String((d && d.name) || '').toLowerCase().indexOf(q) < 0 && String(p.id).indexOf(q) < 0 && String(p.note || '').toLowerCase().indexOf(q) < 0) return false;
+    return true;
+  }
+  function render() {
+    dirty = false;
+    var groups = { online: [], idle: [], offline: [], abroad: [], strong: [] }, n = now();
+    var okay = 0, hosp = 0, inactive = 0;
+    S.list.players.forEach(function (p) {
+      var d = S.data[p.id], i = statusInfo(d), s = lastSecs(d);
+      if (i.ok) okay++; if (d && d.status && d.status.state === 'Hospital' && i.left > 0) hosp++;
+      if (s != null && s > prefs.days * 86400) inactive++;
+      if (!visible(p)) return;
+      groups[tooStrong(p.id) ? 'strong' : section(d)].push(p);
+    });
+    $('summary').innerHTML =
+      '<div class="stat"><div class="k">On list</div><div class="v">' + fmtNum(S.list.players.length) + '</div></div>' +
+      '<div class="stat"><div class="k">Okay now</div><div class="v" style="color:var(--good)">' + okay + '</div></div>' +
+      '<div class="stat"><div class="k">In hospital</div><div class="v" style="color:var(--bad)">' + hosp + '</div></div>' +
+      '<div class="stat"><div class="k">Inactive ' + prefs.days + 'd+</div><div class="v" style="color:var(--idle)">' + inactive + '</div></div>' +
+      '<div class="stat"><div class="k">Your stats</div><div class="v">' + (S.myTotal ? short(S.myTotal) : '-') + '</div></div>';
+    $('facList').innerHTML = S.list.factions.map(function (f) {
+      return '<span class="fchip"><b>' + esc(f.name) + '</b>' + (f.follow ? 'following' : 'fixed') + '<button title="Stop following (keeps its players)" data-unf="' + f.id + '">×</button></span>';
+    }).join('');
+    var ph = '';
+    if (!S.list.players.length) ph = '<div class="card empty">Your list is empty. Add players or a whole faction above.</div>';
+    else {
+      SECTIONS.forEach(function (s) {
+        ph += '<div class="sec"><div class="sech"><span class="d ' + s[0] + '"></span>' + s[1] + ' <span class="n">(' + groups[s[0]].length + ')</span></div>' + table(groups[s[0]], s[0]) + '</div>';
+      });
+      ph += '<div class="sec"><div class="sech toggle" id="strongHead"><span class="d strong"></span>Too strong <span class="n">(' + groups.strong.length + ')</span>' +
+        '<span class="car">' + (prefs.strongOpen ? '▾ hide' : '▸ show') + '</span><span class="n" style="text-transform:none;letter-spacing:0">estimated stats above yours</span></div>' +
+        (prefs.strongOpen ? table(groups.strong, 'strong') : '') + '</div>';
+    }
+    $('panel').innerHTML = ph;
+    var viaFac = Object.keys(followedIds()).length, solo = S.list.players.length - viaFac;
+    var cyc = solo ? Math.ceil(solo / PER_MIN) : 0;
+    $('cycle').textContent = !S.key ? '' : solo ? 'Each player is checked about every ' + (cyc <= 1 ? 'minute' : cyc + ' minutes') + (viaFac ? '; followed factions every minute' : '') : (viaFac ? 'Followed factions are checked every minute' : '');
+  }
+  // countdowns, ETAs and attack links update in place every second
+  function tick() {
+    var rows = document.querySelectorAll('#panel tr[data-id]');
+    for (var i = 0; i < rows.length; i++) {
+      var id = rows[i].getAttribute('data-id'), d = S.data[id];
+      var info = statusInfo(d), st = rows[i].querySelector('.st');
+      if (st && st.textContent !== info.text) { st.textContent = info.text; st.className = 'st ' + info.cls; }
+      var a = rows[i].querySelector('.atk'); if (a) a.classList.toggle('dim', !info.ok);
+      var e = rows[i].querySelector('.eta'); if (e && d && d.status && d.status.state === 'Traveling') { var t = etaText(id, d.status); if (e.textContent !== t) e.textContent = t; }
+    }
+  }
+
+  // ---------------------------------------------------------------- clear inactive
+  function openClear() {
+    var lim = prefs.days * 86400;
+    var list = S.list.players.filter(function (p) { var s = lastSecs(S.data[p.id]); return s != null && s > lim; })
+      .sort(function (a, b) { return lastSecs(S.data[b.id]) - lastSecs(S.data[a.id]); });
+    var o = document.createElement('div'); o.className = 'modal';
+    o.innerHTML = '<div class="box"><h2 style="margin:0;font:600 16px var(--display)">Clear inactive players</h2>' +
+      (list.length ? '<div class="note">These ' + list.length + ' players have not been active for more than ' + prefs.days + ' days. Untick anyone you want to keep.</div>' +
+        '<div class="list">' + list.map(function (p) { var d = S.data[p.id] || {}; return '<label><input type="checkbox" checked value="' + p.id + '">' + esc(d.name || p.id) + ' <span>' + ago(lastSecs(d)) + (p.note ? ' · ' + esc(p.note) : '') + '</span></label>'; }).join('') + '</div>' +
+        '<div class="row"><button class="btn primary" data-go="1">Remove ticked</button><button class="btn ghost" data-x="1">Cancel</button></div>'
+        : '<div class="note">Nobody on your list has been inactive for more than ' + prefs.days + ' days.</div><div class="row"><button class="btn" data-x="1">Close</button></div>') + '</div>';
+    document.body.appendChild(o);
+    o.addEventListener('click', function (ev) {
+      if (ev.target === o || ev.target.getAttribute('data-x')) o.remove();
+      if (ev.target.getAttribute('data-go')) {
+        var ids = [].map.call(o.querySelectorAll('input:checked'), function (c) { return Number(c.value); });
+        removePlayers(ids); msg('Removed ' + ids.length + ' inactive player' + (ids.length === 1 ? '' : 's') + '.'); o.remove();
+      }
+    });
+  }
+
+  // ---------------------------------------------------------------- events
+  document.addEventListener('click', function (ev) {
+    var t = ev.target;
+    var rm = t.closest && t.closest('[data-rm]');
+    if (rm) { var id = Number(rm.getAttribute('data-rm')), d = S.data[id]; if (confirm('Remove ' + ((d && d.name) || id) + ' from your list?')) removePlayers([id]); return; }
+    var unf = t.closest && t.closest('[data-unf]');
+    if (unf) { unfollow(Number(unf.getAttribute('data-unf'))); return; }
+    if (t.closest && t.closest('#strongHead')) { prefs.strongOpen = !prefs.strongOpen; save('tg_prefs', prefs); render(); return; }
+    var th = t.closest && t.closest('th[data-k]');
+    if (th) {
+      var sec = th.closest('table').getAttribute('data-sec'), k = th.getAttribute('data-k'), s = prefs.sort[sec] || { k: 'status', d: 1 };
+      prefs.sort[sec] = s.k === k ? { k: k, d: -s.d } : { k: k, d: (k === 'name' || k === 'status' || k === 'last') ? 1 : -1 };
+      save('tg_prefs', prefs); render();
+    }
+  });
+  $('fOkay').checked = prefs.okay; $('fHideInactive').checked = prefs.hideInactive; $('fDays').value = prefs.days;
+  $('fOkay').addEventListener('change', function () { prefs.okay = this.checked; save('tg_prefs', prefs); render(); });
+  $('fHideInactive').addEventListener('change', function () { prefs.hideInactive = this.checked; save('tg_prefs', prefs); render(); });
+  $('fDays').addEventListener('change', function () { var v = Math.max(1, Math.min(3650, parseInt(this.value, 10) || 30)); this.value = v; prefs.days = v; save('tg_prefs', prefs); render(); });
+  $('fSearch').addEventListener('input', function () { render(); });
+  $('clearBtn').addEventListener('click', openClear);
+  $('refreshBtn').addEventListener('click', function () { S.facAt = {}; S.queue = S.list.players.map(function (p) { return p.id; }); loadFF(); msg('Refreshing everyone in turns...'); });
+  $('saveKey').addEventListener('click', function () {
+    var k = $('keyInput').value.trim(); if (!k) return;
+    S.key = k; save('torn_key', k); $('keyInput').value = ''; $('keyCard').classList.add('hidden'); showErr(''); loadFF(); render();
+  });
+  $('keyInput').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('saveKey').click(); });
+
+  // ---------------------------------------------------------------- start
+  var dirty = true;
+  if (!S.key) $('keyCard').classList.remove('hidden');
+  Store.load().then(function (l) {
+    S.list = { players: (l && l.players) || [], factions: (l && l.factions) || [] };
+    S.loaded = true; render(); loadMyStats(); loadFF();
+  });
+  setInterval(function () {
+    if (!S.loaded) return;
+    pump(); tick();
+    if (S.key && now() - S.ffAt > FF_EVERY) loadFF();
+    if (dirty && !document.querySelector('#panel tr:hover')) { save('tg_data', S.data); save('tg_obs', S.obs); render(); }
+  }, 1000);
+})();
+</script>
+</body>
+</html>
